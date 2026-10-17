@@ -8,14 +8,20 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=6">
+  <link rel="stylesheet" href="style.css?v=7">
 </head>
 <body>
+  <div class="cursor" aria-hidden="true"><span class="cursor-label"></span></div>
+  <svg class="progress" viewBox="0 0 1000 24" preserveAspectRatio="none" aria-hidden="true">
+    <path class="progress-track" d=""/>
+    <path class="progress-line" d=""/>
+  </svg>
 
   <nav class="nav" aria-label="Main">
     <a href="#top" class="brand">Ahmed Elabgari</a>
     <div class="links">
       <a href="#about">About</a>
+      <a href="#live">Live demo</a>
       <a href="#expertise">Expertise</a>
       <a href="#certificate">Certificate</a>
       <a href="#work">Projects</a>
@@ -43,9 +49,21 @@
       </div>
     </div>
     <p class="hero-hint">Move your cursor to stir the noise</p>
+    <a class="scroll-cue" href="#manifesto" aria-label="Scroll down"><span></span></a>
   </header>
 
   <main>
+
+    <!-- ============ MANIFESTO: scroll lights up the words ============ -->
+    <section id="manifesto" class="manifesto" aria-label="What I do">
+      <p class="manifesto-text" data-split>
+        Every day, thousands of posts, headlines and broadcasts compete for attention.
+        I track what is being said across digital, social and traditional media,
+        separate the signal from the noise, and turn it into one clear briefing
+        that leaders can act on.
+      </p>
+    </section>
+
     <!-- ============ ABOUT (Python) ============ -->
     <section id="about" class="sec">
       <h2 class="code-head" aria-label="About">
@@ -70,37 +88,81 @@
       </div>
     </section>
 
-    <!-- ============ EXPERTISE (SQL) ============ -->
-    <section id="expertise" class="sec">
-      <h2 class="code-head" aria-label="Expertise">
-        <span class="k">SELECT</span> area, scope <span class="k">FROM</span> <span class="n">expertise</span>;
+
+    <!-- ============ LIVE MONITORING ROOM ============ -->
+    <section id="live" class="sec live">
+      <h2 class="code-head" aria-label="Monitoring room">
+        <span class="n">monitor</span>.<span class="n2">live</span>()
       </h2>
-      <div class="result" role="table" aria-label="Expertise">
-        <div class="r-row r-headrow" role="row"><span role="columnheader">area</span><span role="columnheader">scope</span></div>
-        <div class="r-row" role="row">
-          <span class="r-area" role="cell">Media monitoring</span>
-          <span role="cell">Digital &amp; social media (X/Twitter, Instagram, Facebook, TikTok, YouTube, online news) and traditional media (TV, radio, print); coverage tracking, share of voice.</span>
+      <p class="prose live-intro">Two small demos of what my work looks like. Both run in your browser on simulated data.</p>
+
+      <div class="room">
+        <!-- Sentiment analyzer -->
+        <div class="widget" id="senti">
+          <div class="w-head"><span class="dot"></span>Sentiment analyzer</div>
+          <label class="sr-only" for="sentiInput">Type a post to score its sentiment</label>
+          <textarea id="sentiInput" rows="3" placeholder="Type a post in English or Arabic…" dir="auto">Power is back in our area, thanks for the fast response!</textarea>
+          <div class="chips" aria-label="Example posts">
+            <button type="button" data-ex="Power is back in our area, thanks for the fast response!">Positive example</button>
+            <button type="button" data-ex="انقطاع الكهرباء مستمر منذ ساعتين ولا يوجد أي رد">Arabic complaint</button>
+            <button type="button" data-ex="The service was slow at first but the team resolved my issue">Mixed example</button>
+          </div>
+          <div class="gauge-wrap">
+            <svg class="gauge" viewBox="0 0 200 116" aria-hidden="true">
+              <defs><linearGradient id="gg" x1="0" x2="1"><stop offset="0" stop-color="#F59FAE"/><stop offset=".5" stop-color="#93A7C2"/><stop offset="1" stop-color="#6FE3C1"/></linearGradient></defs>
+              <path d="M20 100 A80 80 0 0 1 180 100" fill="none" stroke="url(#gg)" stroke-width="14" stroke-linecap="round"/>
+              <g class="needle"><line x1="100" y1="100" x2="100" y2="34"/><circle cx="100" cy="100" r="7"/></g>
+            </svg>
+            <div class="verdict" aria-live="polite"><strong id="sentiLabel">Positive</strong><span id="sentiScore">score +0.80</span></div>
+          </div>
+          <p class="tokens" id="sentiTokens" dir="auto"></p>
+          <p class="w-note">A simple keyword model built for this page, a toy version of real sentiment analysis.</p>
         </div>
-        <div class="r-row" role="row">
-          <span class="r-area" role="cell">Crisis &amp; reputation management</span>
-          <span role="cell">PR risk assessment, public sentiment monitoring, stakeholder communication, real-time briefings, executive reporting.</span>
+
+        <!-- Crisis simulator -->
+        <div class="widget" id="crisis">
+          <div class="w-head"><span class="dot live-dot"></span>Mentions per minute <span class="w-tag">simulated</span></div>
+          <canvas id="mentions" height="190" aria-label="Live chart of simulated mentions per minute"></canvas>
+          <div class="mix" aria-label="Sentiment mix">
+            <span class="mix-neg" style="width:18%"></span><span class="mix-neu" style="width:42%"></span><span class="mix-pos" style="width:40%"></span>
+          </div>
+          <div class="mix-legend"><span><i class="lg-neg"></i>Negative <b id="negPct">18%</b></span><span><i class="lg-neu"></i>Neutral</span><span><i class="lg-pos"></i>Positive</span></div>
+          <button class="pill solid crisis-btn" id="crisisBtn" type="button">Simulate a crisis spike</button>
+          <ol class="escalation" id="escalation" aria-live="polite">
+            <li data-step="detect"><b>Detect</b><span>Waiting for unusual volume</span></li>
+            <li data-step="assess"><b>Assess</b><span>PR risk and sentiment shift</span></li>
+            <li data-step="escalate"><b>Escalate</b><span>Alert the response team</span></li>
+            <li data-step="brief"><b>Brief</b><span>Real-time briefing to leadership</span></li>
+          </ol>
         </div>
-        <div class="r-row" role="row">
-          <span class="r-area" role="cell">Leadership &amp; delivery</span>
-          <span role="cell">Remote team management, workload allocation, escalation workflows, staff training, project planning, reporting quality improvement.</span>
+      </div>
+    </section>
+
+
+    <!-- ============ EXPERTISE: horizontal track ============ -->
+    <section id="expertise" class="hz" aria-label="Expertise">
+      <div class="hz-pin">
+        <h2 class="code-head hz-head" aria-label="Expertise">
+          <span class="k">SELECT</span> area, scope <span class="k">FROM</span> <span class="n">expertise</span>;
+        </h2>
+        <div class="hz-track">
+          <article class="hz-card"><span class="hz-glyph" aria-hidden="true">@</span>
+            <h3>Media monitoring</h3>
+            <p>Digital &amp; social media (X/Twitter, Instagram, Facebook, TikTok, YouTube, online news) and traditional media (TV, radio, print); coverage tracking, share of voice.</p></article>
+          <article class="hz-card"><span class="hz-glyph" aria-hidden="true">!</span>
+            <h3>Crisis &amp; reputation management</h3>
+            <p>PR risk assessment, public sentiment monitoring, stakeholder communication, real-time briefings, executive reporting.</p></article>
+          <article class="hz-card"><span class="hz-glyph" aria-hidden="true">&gt;</span>
+            <h3>Leadership &amp; delivery</h3>
+            <p>Remote team management, workload allocation, escalation workflows, staff training, project planning, reporting quality improvement.</p></article>
+          <article class="hz-card"><span class="hz-glyph" aria-hidden="true">%</span>
+            <h3>Analytics</h3>
+            <p>Sentiment analysis, social media measurement, audience &amp; engagement analysis, KPI reporting, data visualization, dashboards.</p></article>
+          <article class="hz-card"><span class="hz-glyph" aria-hidden="true">{}</span>
+            <h3>Technical</h3>
+            <div class="stack"><span>Python</span><span>R (ggplot2)</span><span>SQL</span><span>Excel</span><span>PowerPoint</span><span>AI agents</span><span>Model Context Protocol (MCP)</span><span>API integration</span></div></article>
         </div>
-        <div class="r-row" role="row">
-          <span class="r-area" role="cell">Analytics</span>
-          <span role="cell">Sentiment analysis, social media measurement, audience &amp; engagement analysis, KPI reporting, data visualization, dashboards.</span>
-        </div>
-        <div class="r-row" role="row">
-          <span class="r-area" role="cell">Technical</span>
-          <span role="cell" class="stack">
-            <span>Python</span><span>R (ggplot2)</span><span>SQL</span><span>Excel</span><span>PowerPoint</span>
-            <span>AI agents</span><span>Model Context Protocol (MCP)</span><span>API integration</span>
-          </span>
-        </div>
-        <p class="r-foot">5 rows returned</p>
+        <p class="hz-foot">5 rows returned</p>
       </div>
     </section>
 
@@ -269,30 +331,28 @@
       </article>
     </section>
 
-    <!-- ============ CONTACT (terminal) ============ -->
+
+    <!-- ============ CONTACT: interactive terminal ============ -->
     <section id="contact" class="sec contact">
       <h2 class="contact-title">Let's work together</h2>
-      <p class="prose">Open to media monitoring, reporting and analytics opportunities.</p>
-      <div class="terminals">
-        <a class="terminal" href="mailto:ahmadalabqari@hotmail.com">
-          <span class="t-bar"><i></i><i></i><i></i><b>email</b></span>
-          <span class="t-line"><span class="t-prompt">$</span> mail --to <span class="t-mail">ahmadalabqari@hotmail.com</span><span class="caret" aria-hidden="true"></span></span>
-          <span class="t-hint">Press to send an email</span>
-        </a>
-        <a class="terminal li" href="https://www.linkedin.com/in/ahmed-elabgari-%D8%A3%D8%AD%D9%85%D8%AF-%D8%A7%D9%84%D8%B9%D8%A8%D9%82%D8%B1%D9%8A-8b4448244/" target="_blank" rel="noopener" aria-label="Connect with Ahmed Elabgari on LinkedIn">
-          <span class="t-bar"><i></i><i></i><i></i><b>linkedin</b></span>
-          <span class="t-line"><span class="t-prompt">$</span> curl <span class="t-mail">linkedin.com/in/ahmed-elabgari</span></span>
-          <span class="t-status"><span class="ok">200 OK</span></span>
-<pre class="t-json" aria-hidden="true">{
-  <span class="a">"name"</span>:     <span class="s">"Ahmed Elabgari"</span>,
-  <span class="a">"name_ar"</span>:  <span class="s">"<bdi lang="ar">أحمد العبقري</bdi>"</span>,
-  <span class="a">"headline"</span>: <span class="s">"Media Monitoring &amp; Reporting Lead"</span>,
-  <span class="a">"action"</span>:   <span class="k">connect()</span>
-}</pre>
-          <span class="t-hint">Press to open my LinkedIn profile</span>
-        </a>
+      <p class="prose">Open to media monitoring, reporting and analytics opportunities. Type a command below, or use the buttons.</p>
+      <div class="term" id="term">
+        <div class="t-bar"><i></i><i></i><i></i><b>ahmed@portfolio</b></div>
+        <div class="term-out" id="termOut" aria-live="polite"></div>
+        <form class="term-in" id="termForm" autocomplete="off">
+          <label for="termInput" class="t-prompt">$</label>
+          <input id="termInput" type="text" spellcheck="false" autocapitalize="off" placeholder="type help and press Enter" aria-label="Terminal command">
+        </form>
       </div>
+      <div class="quick" aria-label="Quick commands">
+        <button type="button" data-cmd="email">email</button>
+        <button type="button" data-cmd="linkedin">linkedin</button>
+        <button type="button" data-cmd="certificate">certificate</button>
+        <button type="button" data-cmd="help">help</button>
+      </div>
+      <p class="plain-links">Prefer plain links? <a href="mailto:ahmadalabqari@hotmail.com">ahmadalabqari@hotmail.com</a> or <a href="https://www.linkedin.com/in/ahmed-elabgari-%D8%A3%D8%AD%D9%85%D8%AF-%D8%A7%D9%84%D8%B9%D8%A8%D9%82%D8%B1%D9%8A-8b4448244/" target="_blank" rel="noopener">LinkedIn</a>.</p>
     </section>
+
   </main>
 
   <footer class="foot">
@@ -307,6 +367,8 @@
     <button class="lb-nav lb-next" aria-label="Next">›</button>
   </div>
 
-  <script src="script.js?v=5"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="script.js?v=7"></script>
 </body>
 </html>
