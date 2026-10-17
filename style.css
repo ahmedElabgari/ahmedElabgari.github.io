@@ -118,6 +118,111 @@ h2 { font-family: "Space Grotesk", sans-serif; font-size: clamp(2rem, 4vw, 3rem)
 .skill h3 { font-family: "Space Grotesk", sans-serif; margin: 8px 0 8px; font-size: 1.25rem; }
 .skill p { color: var(--muted); font-size: .95rem; }
 
+/* ---------- Case studies ---------- */
+.case { background: var(--surface); border-radius: 24px; padding: 36px; margin-bottom: 36px; border: 1px solid rgba(255,255,255,.05); }
+.case-head { display: flex; gap: 20px; align-items: flex-start; margin-bottom: 24px; }
+.case-num { font-family: "Space Grotesk", sans-serif; font-size: 2.6rem; font-weight: 700; line-height: 1;
+  background: linear-gradient(135deg, var(--teal), #6b5bff); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.case-head h3 { font-family: "Space Grotesk", sans-serif; font-size: clamp(1.3rem, 2.4vw, 1.75rem); line-height: 1.25; }
+.case-body { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; }
+.case-text p, .case-intro { color: var(--muted); margin-bottom: 14px; max-width: 760px; }
+.flow-steps { list-style: none; counter-reset: s; margin-top: 22px; display: grid; gap: 12px; }
+.flow-steps li { counter-increment: s; display: grid; grid-template-columns: 34px 1fr; column-gap: 12px; }
+.flow-steps li::before { content: counter(s); grid-row: span 2; width: 30px; height: 30px; border-radius: 50%;
+  display: grid; place-items: center; font-size: .8rem; border: 1px solid var(--teal); color: var(--teal); }
+.flow-steps b { font-family: "Space Grotesk", sans-serif; }
+.flow-steps span { color: var(--muted); font-size: .92rem; }
+
+/* diagram */
+.diagram { background: radial-gradient(circle at 50% 40%, rgba(0,200,180,.10), transparent 70%); border-radius: 18px; padding: 10px; }
+.diagram svg { width: 100%; height: auto; display: block; }
+.diagram .link { fill: none; stroke: rgba(139,147,167,.45); stroke-width: 2; stroke-dasharray: 5 6; animation: dash 1.2s linear infinite; }
+@keyframes dash { to { stroke-dashoffset: -22; } }
+.diagram .pulse { fill: var(--teal); filter: drop-shadow(0 0 6px var(--teal)); }
+.diagram .pulse.amber { fill: var(--amber); filter: drop-shadow(0 0 6px var(--amber)); }
+.diagram .node rect { fill: #0f1320; stroke: rgba(139,147,167,.4); stroke-width: 1.5; }
+.diagram .node.hl rect { stroke: url(#g1); stroke-width: 2.5; }
+.diagram .node.api rect { stroke: rgba(255,170,60,.6); }
+.diagram text { fill: var(--text); font: 600 15px "Space Grotesk", sans-serif; text-anchor: middle; }
+.diagram text.sub { fill: var(--muted); font: 400 12px "Inter", sans-serif; }
+.diagram text.cap { fill: var(--muted); font: 400 13px "Inter", sans-serif; }
+.diagram .node.api text { font-size: 13px; }
+
+/* tabs */
+.tabs { display: flex; gap: 8px; flex-wrap: wrap; margin: 26px 0 22px; }
+.tab { background: transparent; color: var(--muted); border: 1px solid rgba(139,147,167,.35); border-radius: 999px;
+  padding: 9px 18px; font: 500 .9rem "Inter", sans-serif; cursor: pointer; transition: all .2s; }
+.tab:hover { color: var(--text); }
+.tab.active { background: var(--teal); border-color: var(--teal); color: var(--bg); }
+.panel { display: none; }
+.panel.active { display: block; animation: fadeIn .4s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+/* slide deck viewer */
+.deck { outline: none; }
+.deck-stage { position: relative; display: flex; align-items: center; justify-content: center; gap: 14px;
+  background: #0b0e17; border-radius: 18px; padding: 24px 12px; }
+.deck-track { position: relative; height: min(78vh, 900px); aspect-ratio: 1125 / 2100; touch-action: pan-y; }
+.deck-track img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; border-radius: 8px;
+  opacity: 0; transform: scale(.97); transition: opacity .35s, transform .35s; box-shadow: 0 20px 60px rgba(0,0,0,.5); }
+.deck-track img.active { opacity: 1; transform: none; }
+.deck-nav { flex: none; width: 48px; height: 48px; border-radius: 50%; border: 1px solid rgba(139,147,167,.4);
+  background: rgba(19,23,38,.9); color: var(--text); font-size: 1.8rem; line-height: 1; cursor: pointer; transition: all .2s; }
+.deck-nav:hover:not(:disabled) { border-color: var(--teal); color: var(--teal); }
+.deck-nav:disabled { opacity: .3; cursor: default; }
+.deck-bar { display: flex; align-items: center; gap: 12px; margin-top: 16px; flex-wrap: wrap; }
+.deck-thumbs { display: flex; gap: 8px; flex: 1; overflow-x: auto; padding: 4px 2px; }
+.deck-thumbs button { flex: none; width: 46px; height: 86px; padding: 0; border-radius: 6px; overflow: hidden; cursor: pointer;
+  border: 2px solid transparent; background: #fff; opacity: .55; transition: all .2s; }
+.deck-thumbs button img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.deck-thumbs button.active { border-color: var(--teal); opacity: 1; }
+.deck-count { color: var(--muted); font-size: .9rem; min-width: 48px; text-align: center; }
+.deck-btn { background: transparent; border: 1px solid rgba(139,147,167,.4); color: var(--text); border-radius: 999px;
+  padding: 8px 16px; font: 500 .85rem "Inter", sans-serif; cursor: pointer; }
+.deck-btn:hover { border-color: var(--teal); color: var(--teal); }
+.deck:fullscreen { background: #05070c; display: flex; flex-direction: column; justify-content: center; padding: 20px; }
+.deck:fullscreen .deck-track { height: 84vh; }
+
+/* tableau */
+.tableau { position: relative; border-radius: 16px; overflow: hidden; background: #1d3a5f; }
+.tableau > img { display: block; width: 100%; height: auto; filter: brightness(.55); }
+.tableau-cta { position: absolute; inset: 0; display: flex; gap: 12px; align-items: center; justify-content: center; flex-wrap: wrap; padding: 16px; }
+.tableau iframe { display: block; width: 100%; height: 860px; border: 0; background: #fff; }
+.tableau.loaded .tableau-cta { position: static; padding: 14px; background: var(--bg); justify-content: flex-end; }
+.btn.solid { background: var(--teal); color: var(--bg); font-weight: 500; cursor: pointer; font-family: inherit; font-size: 1rem; }
+.btn.solid:hover { filter: brightness(1.1); }
+
+/* galleries */
+.gallery { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.gallery.py { grid-template-columns: repeat(2, 1fr); }
+.gallery figure { margin: 0; background: #fff; border-radius: 12px; overflow: hidden; cursor: zoom-in; position: relative; transition: transform .3s, box-shadow .3s; }
+.gallery figure:hover { transform: translateY(-4px); box-shadow: 0 16px 40px rgba(0,0,0,.45); }
+.gallery figure.wide { grid-column: 1 / -1; }
+.gallery img { display: block; width: 100%; height: auto; }
+.gallery figcaption { position: absolute; left: 0; right: 0; bottom: 0; padding: 22px 14px 10px; font-size: .85rem;
+  color: #fff; background: linear-gradient(transparent, rgba(5,7,12,.85)); opacity: 0; transition: opacity .25s; }
+.gallery figure:hover figcaption { opacity: 1; }
+
+/* lightbox */
+.lightbox { position: fixed; inset: 0; z-index: 100; background: rgba(5,7,12,.93); display: flex; align-items: center; justify-content: center; gap: 12px; padding: 20px; }
+.lightbox[hidden] { display: none; }
+.lightbox figure { margin: 0; max-width: 92vw; text-align: center; }
+.lightbox img { max-width: 100%; max-height: 82vh; border-radius: 10px; background: #fff; }
+.lightbox figcaption { color: var(--muted); margin-top: 10px; }
+.lb-close { position: absolute; top: 14px; right: 20px; background: none; border: 0; color: var(--text); font-size: 2.4rem; cursor: pointer; }
+.lb-nav { flex: none; width: 48px; height: 48px; border-radius: 50%; border: 1px solid rgba(139,147,167,.4); background: rgba(19,23,38,.9); color: var(--text); font-size: 1.8rem; cursor: pointer; }
+
+@media (max-width: 900px) {
+  .case { padding: 22px; }
+  .case-body { grid-template-columns: 1fr; }
+  .gallery, .gallery.py { grid-template-columns: 1fr; }
+  .deck-track { height: 70vh; }
+  .deck-stage { padding: 14px 4px; gap: 6px; }
+  .deck-nav { width: 38px; height: 38px; font-size: 1.4rem; }
+  .tableau iframe { height: 640px; }
+  .lb-nav { display: none; }
+}
+
 .contact { text-align: center; }
 .contact .lead { margin: 0 auto 28px; }
 

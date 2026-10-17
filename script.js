@@ -74,6 +74,7 @@ class Particle {
    Anything with class="reveal" fades up as you scroll to it.
    ========================================================= */
 
+if (window.gsap) {
 gsap.registerPlugin(ScrollTrigger);
 
 gsap.from('.hero-content > *', {
@@ -86,3 +87,120 @@ gsap.utils.toArray('.reveal').forEach(el => {
     scrollTrigger: { trigger: el, start: 'top 85%' }
   });
 });
+}
+
+/* =========================================================
+   PROJECT TABS
+   ========================================================= */
+document.querySelectorAll('.case').forEach(cs => {
+  cs.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      cs.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t === tab));
+      cs.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.dataset.panel === tab.dataset.tab));
+      window.ScrollTrigger && ScrollTrigger.refresh();
+    });
+  });
+});
+
+/* =========================================================
+   SLIDE DECK VIEWER (report)
+   ========================================================= */
+(() => {
+  const deck = document.getElementById('deck');
+  if (!deck) return;
+  const slides = [...deck.querySelectorAll('.deck-track img')];
+  const thumbs = deck.querySelector('.deck-thumbs');
+  const count = deck.querySelector('.deck-count');
+  const prev = deck.querySelector('.prev'), next = deck.querySelector('.next');
+  let i = 0;
+
+  slides.forEach((s, n) => {
+    const b = document.createElement('button');
+    b.setAttribute('aria-label', 'Go to slide ' + (n + 1));
+    b.innerHTML = `<img src="${s.getAttribute('src')}" alt="" loading="lazy">`;
+    b.onclick = () => go(n);
+    thumbs.appendChild(b);
+  });
+
+  function go(n) {
+    i = Math.max(0, Math.min(slides.length - 1, n));
+    slides.forEach((s, k) => s.classList.toggle('active', k === i));
+    [...thumbs.children].forEach((t, k) => t.classList.toggle('active', k === i));
+    count.textContent = `${i + 1} / ${slides.length}`;
+    prev.disabled = i === 0; next.disabled = i === slides.length - 1;
+  }
+  prev.onclick = () => go(i - 1);
+  next.onclick = () => go(i + 1);
+  deck.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight') go(i + 1);
+    if (e.key === 'ArrowLeft') go(i - 1);
+  });
+  // swipe on phones
+  let x0 = null;
+  const track = deck.querySelector('.deck-track');
+  track.addEventListener('touchstart', e => { x0 = e.touches[0].clientX; }, { passive: true });
+  track.addEventListener('touchend', e => {
+    if (x0 === null) return;
+    const dx = e.changedTouches[0].clientX - x0;
+    if (Math.abs(dx) > 40) go(i + (dx < 0 ? 1 : -1));
+    x0 = null;
+  });
+  document.getElementById('deckFull').onclick = () => {
+    if (document.fullscreenElement) document.exitFullscreen();
+    else deck.requestFullscreen?.();
+    deck.focus();
+  };
+  go(0);
+})();
+
+/* =========================================================
+   TABLEAU: load the live dashboard only when asked
+   ========================================================= */
+(() => {
+  const btn = document.getElementById('loadViz');
+  if (!btn) return;
+  btn.onclick = () => {
+    const box = document.getElementById('tableau');
+    const f = document.createElement('iframe');
+    f.src = 'https://public.tableau.com/views/CaseStudy_17630080940830/AhmedElabgari?:embed=y&:showVizHome=no&:display_count=n&:toolbar=bottom&:origin=viz_share_link';
+    f.title = 'Interactive Tableau dashboard by Ahmed Elabgari';
+    f.allowFullscreen = true;
+    box.querySelector('img').replaceWith(f);
+    btn.remove();
+    box.classList.add('loaded');
+  };
+})();
+
+/* =========================================================
+   LIGHTBOX for chart galleries
+   ========================================================= */
+(() => {
+  const lb = document.getElementById('lightbox');
+  if (!lb) return;
+  const img = lb.querySelector('img'), cap = lb.querySelector('figcaption');
+  let list = [], i = 0;
+  function show(n) {
+    i = (n + list.length) % list.length;
+    const f = list[i];
+    img.src = f.querySelector('img').src;
+    img.alt = f.querySelector('img').alt;
+    cap.textContent = f.querySelector('figcaption')?.textContent || '';
+  }
+  document.querySelectorAll('.gallery').forEach(g => {
+    const figs = [...g.querySelectorAll('figure')];
+    figs.forEach((f, n) => f.addEventListener('click', () => {
+      list = figs; show(n); lb.hidden = false; document.body.style.overflow = 'hidden';
+    }));
+  });
+  const close = () => { lb.hidden = true; document.body.style.overflow = ''; };
+  lb.querySelector('.lb-close').onclick = close;
+  lb.querySelector('.lb-prev').onclick = e => { e.stopPropagation(); show(i - 1); };
+  lb.querySelector('.lb-next').onclick = e => { e.stopPropagation(); show(i + 1); };
+  lb.addEventListener('click', e => { if (e.target === lb) close(); });
+  document.addEventListener('keydown', e => {
+    if (lb.hidden) return;
+    if (e.key === 'Escape') close();
+    if (e.key === 'ArrowRight') show(i + 1);
+    if (e.key === 'ArrowLeft') show(i - 1);
+  });
+})();
