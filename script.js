@@ -3,6 +3,13 @@
    ===================================================================== */
 const REDUCE = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
+/* all scroll work runs at most once per frame */
+const Scroll = (() => {
+  const fns = []; let queued = false;
+  const run = () => { queued = false; const y = scrollY; for (const f of fns) f(y); };
+  addEventListener('scroll', () => { if (!queued) { queued = true; requestAnimationFrame(run); } }, { passive: true });
+  return { on: f => { fns.push(f); f(scrollY); } };
+})();
 const COL = { pos: '#5BE3B5', neu: '#6F8DB8', neg: '#FF6B7A', alert: '#FF3B4E', paper: '#F2F4F7', amber: '#FFB547' };
 
 /* ---------- mood system: each section sets the page mood ---------- */
@@ -143,17 +150,23 @@ const Mood = (() => {
     return pts.length ? pts[pts.length - 1][1] : 0;
   }
   function update() {
-    const max = document.documentElement.scrollHeight - innerHeight;
-    const f = max > 0 ? scrollY / max : 0;
-    const mins = 6 * 60 + Math.round(f * 8 * 60);
-    clock.textContent = String(Math.floor(mins / 60)).padStart(2, '0') + ':' + String(mins % 60).padStart(2, '0');
+    // clock: 06:00 to 09:00 before the crisis, 09:00 to 11:30 during it (matches its own clock), then on to 14:00
+    const max = document.documentElement.scrollHeight - innerHeight, cr = document.getElementById('crisis');
+    const cTop = cr ? cr.offsetTop : max * .4, cEnd = cr ? cr.offsetTop + cr.offsetHeight - innerHeight : max * .6;
+    const y = scrollY;
+    const mins = y < cTop ? 360 + 180 * clamp(y / cTop)
+      : y < cEnd ? 540 + 150 * clamp((y - cTop) / (cEnd - cTop) * 1.08)
+      : 690 + 150 * clamp((y - cEnd) / Math.max(1, max - cEnd));
+    const mm = Math.round(mins);
+    const txt = String(Math.floor(mm / 60)).padStart(2, '0') + ':' + String(mm % 60).padStart(2, '0');
+    if (clock.textContent !== txt) clock.textContent = txt;
     const yf = (scrollY + innerHeight / 2) / document.documentElement.scrollHeight;
     dot.setAttribute('cy', (yf * 400).toFixed(1)); dot.setAttribute('cx', (20 + at(yf) * 16).toFixed(1));
   }
   addEventListener('load', () => { layout(); update(); });
   addEventListener('resize', () => { layout(); update(); });
-  addEventListener('scroll', update, { passive: true });
-  layout(); update();
+  Scroll.on(update);
+  layout();
 })();
 
 /* ---------- story: teleprompter words light as you scroll ---------- */
@@ -163,12 +176,14 @@ const Mood = (() => {
   const TONE = { 'attention.': 'neu', 'mood': 'pos', 'clear': 'pos', 'briefing': 'pos', 'crisis': 'neg', 'breaks.': 'neg' };
   p.innerHTML = p.textContent.trim().split(/\s+/).map(w => `<span class="w ${TONE[w] || ''}">${w}</span>`).join(' ');
   const spans = [...p.querySelectorAll('.w')];
+  let last = -1;
   const upd = () => {
     const r = sec.getBoundingClientRect(), prog = clamp(-r.top / (r.height - innerHeight) * 1.1);
-    const n = Math.round(prog * spans.length);
-    spans.forEach((s, i) => s.classList.toggle('lit', REDUCE || i < n));
+    const n = REDUCE ? spans.length : Math.round(prog * spans.length);
+    if (n === last) return; last = n;
+    spans.forEach((s, i) => s.classList.toggle('lit', i < n));
   };
-  addEventListener('scroll', upd, { passive: true }); upd();
+  Scroll.on(upd);
 })();
 
 /* ---------- sentiment analyzer (keyword model, EN + AR) ---------- */
@@ -236,81 +251,86 @@ const Mood = (() => {
 })();
 
 
-/* ---------- crisis: scroll-driven scenario ---------- */
+/* ---------- crisis: scroll-driven scenario (cheap per-frame updates) ---------- */
 (() => {
   const sec = document.getElementById('crisis');
   if (!sec) return;
   const $ = id => document.getElementById(id);
-  const line = $('crLine'), area = $('crArea'), dot = $('crDot'), clip = $('crClipRect');
-  const mentions = $('crMentions'), negEl = $('crNeg'), clockEl = $('crClock');
+  const line = $('crLine'), area = $('crArea'), ghost = $('crGhost'), clip = $('crClipRect'), dot = $('crDot');
+  const mentions = $('crMentions'), negEl = $('crNeg'), clockEl = $('crClock'), phaseEl = $('crPhase'), playBtn = $('crPlay');
   const steps = [...document.querySelectorAll('#crSteps li')], posts = [...document.querySelectorAll('.post')];
-  const breaking = $('breaking'), brText = $('breakingText');
-  const right = document.querySelector('.cr-right');
-  const W = 600, H = 320, N = 160;
-  // the scenario curve: calm, spike, plateau, recovery
+  const breaking = $('breaking'), brText = $('breakingText'), tint = document.querySelector('.tint');
+  const right = sec.querySelector('.cr-right');
+  const W = 600, H = 320, N = 140, MAXV = 1250;
   const vol = t => 40 + 1100 * Math.exp(-Math.pow((t - .42) / .13, 2)) + 260 * Math.exp(-Math.pow((t - .6) / .1, 2));
   const neg = t => 15 + 58 * Math.exp(-Math.pow((t - .45) / .17, 2)) - 6 * clamp((t - .75) * 4);
-  const MAXV = 1250;
   const X = t => t * W, Y = v => H - 20 - v / MAXV * (H - 50);
   let d = '';
   for (let i = 0; i <= N; i++) { const t = i / N; d += `${i ? 'L' : 'M'}${X(t).toFixed(1)} ${Y(vol(t)).toFixed(1)}`; }
-  line.setAttribute('d', d); area.setAttribute('d', d + ` L${W} ${H} L0 ${H} Z`);
-  const STEP_AT = [.2, .3, .4, .5, .6, .78];
-  const fmtTime = t => { const m = 9 * 60 + Math.round(t * 150); return String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0'); };
+  line.setAttribute('d', d); ghost.setAttribute('d', d); area.setAttribute('d', d + ` L${W} ${H} L0 ${H} Z`);
 
-  // tooltip on hover
+  const STEP_AT = [.16, .28, .38, .5, .62, .76, 2];
+  const PHASES = [[0, 'All quiet'], [.16, 'Spike detected'], [.28, 'Assessing risk'], [.38, 'Escalated'], [.5, 'Briefing leaders'], [.62, 'Updating public'], [.76, 'Recovering'], [.9, 'Resolved']];
+  const fmtTime = t => { const m = 9 * 60 + Math.round(t * 150); return String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0'); };
+  const last = {};
+  const put = (key, el, val, prop = 'textContent') => { if (last[key] !== val) { last[key] = val; el[prop] = val; } };
+
+  let box = { w: 1, h: 1 };
+  const measure = () => { const r = right.getBoundingClientRect(); box = { w: r.width, h: r.height }; };
+  new ResizeObserver(measure).observe(right); measure();
+
+  // hover tooltip
   const tip = document.createElement('div'); tip.className = 'cr-tip'; right.appendChild(tip);
   right.addEventListener('pointermove', e => {
-    const b = right.getBoundingClientRect(), t = clamp((e.clientX - b.left) / b.width);
-    tip.style.left = (e.clientX - b.left) + 'px'; tip.style.top = (Y(vol(t)) / H * b.height) + 'px';
+    const r = right.getBoundingClientRect(), t = clamp((e.clientX - r.left) / r.width);
+    tip.style.transform = `translate(${e.clientX - r.left - 60}px, ${Y(vol(t)) / H * r.height - 40}px)`;
     tip.textContent = `${fmtTime(t)}  ${Math.round(vol(t))}/h  ${Math.round(neg(t))}% neg`;
   });
 
   function render(p) {
     const t = clamp(p);
     clip.setAttribute('width', (t * W).toFixed(1));
-    dot.setAttribute('cx', X(t)); dot.setAttribute('cy', Y(vol(t)));
-    mentions.textContent = Math.round(vol(t)).toLocaleString();
-    negEl.textContent = Math.round(neg(t)) + '%';
-    clockEl.textContent = fmtTime(t);
-    steps.forEach((s, i) => { s.className = t >= STEP_AT[i] ? (t >= (STEP_AT[i + 1] ?? 1.1) ? 'done' : 'on') : ''; });
-    if (t >= .92) steps.forEach(s => s.className = 'done');
-    posts.forEach(el => {
-      const at = +el.dataset.at, isNeg = el.classList.contains('neg');
-      el.classList.toggle('show', t >= at && (!isNeg || t < .68));
-    });
-    // page mood follows the scenario
-    const inView = sec.getBoundingClientRect().top < innerHeight * .5 && sec.getBoundingClientRect().bottom > innerHeight * .5;
-    if (inView) {
-      Mood.lock(true);
-      const mood = t < .18 ? 'signal' : t < .66 ? 'crisis' : t < .9 ? 'response' : 'recovery';
-      Mood.set(mood);
-      document.body.style.setProperty('--crisis', clamp((neg(t) - 20) / 40).toFixed(2));
-      breaking.classList.toggle('resolved', t >= .9);
-      breaking.classList.toggle('show', t >= .9 && t < 1);
-      brText.textContent = t < .5 ? 'Negative mentions surge across platforms. Escalation underway.'
-        : t < .9 ? 'Briefing delivered to leadership. Stakeholder updates going out.'
-        : 'Resolved: sentiment back to normal.';
-    } else { Mood.lock(false); breaking.classList.remove('show'); }
+    dot.style.transform = `translate(${(t * box.w).toFixed(1)}px, ${(Y(vol(t)) / H * box.h).toFixed(1)}px)`;
+    put('m', mentions, Math.round(vol(t)).toLocaleString());
+    put('n', negEl, Math.round(neg(t)) + '%');
+    put('c', clockEl, fmtTime(t));
+    put('p', phaseEl, PHASES.filter(([at]) => t >= at).pop()[1]);
+    const stepKey = steps.map((s, i) => t >= STEP_AT[i + 1] || t >= .9 ? 'd' : t >= STEP_AT[i] ? 'o' : '-').join('');
+    if (last.s !== stepKey) { last.s = stepKey; steps.forEach((s, i) => s.className = { d: 'done', o: 'on', '-': '' }[stepKey[i]]); }
+    const postKey = posts.map(el => (t >= +el.dataset.at && (el.classList.contains('pos') || t < .68)) ? 1 : 0).join('');
+    if (last.posts !== postKey) { last.posts = postKey; posts.forEach((el, i) => el.classList.toggle('show', postKey[i] === '1')); }
+    const mood = t < .16 ? 'signal' : t < .66 ? 'crisis' : t < .9 ? 'response' : 'recovery';
+    Mood.lock(true); Mood.set(mood);
+    const o = (clamp((neg(t) - 20) / 40)).toFixed(2);
+    if (last.o !== o) { last.o = o; tint.style.opacity = mood === 'crisis' ? o : ''; }
+    const br = t >= .9 ? 'Resolved: sentiment back to normal.' : t >= .5 ? 'Briefing delivered to leadership. Stakeholder updates going out.' : 'Negative mentions surge across platforms. Escalation underway.';
+    put('b', brText, br);
+    const resolved = t >= .9;
+    if (last.r !== resolved) { last.r = resolved; breaking.classList.toggle('resolved', resolved); breaking.classList.toggle('show', resolved); }
   }
-  let playing = false;
-  const onScroll = () => {
-    if (playing) return;
-    const r = sec.getBoundingClientRect();
-    render(-r.top / (r.height - innerHeight));
-  };
-  addEventListener('scroll', onScroll, { passive: true }); onScroll();
 
-  // "Play it live": run the whole scenario on a timer
-  const btn = document.createElement('button'); btn.className = 'cr-play'; btn.type = 'button'; btn.textContent = 'Play it live';
-  right.appendChild(btn);
-  btn.addEventListener('click', () => {
+  let top = 0, span = 1, inside = false, playing = false;
+  const geom = () => { top = sec.offsetTop; span = sec.offsetHeight - innerHeight; };
+  addEventListener('resize', geom); addEventListener('load', geom); geom();
+  Scroll.on(y => {
+    const raw = (y - top) / span;
+    const now = raw > -0.15 && raw < 1.05;
+    if (!now) {
+      if (inside) { inside = false; Mood.lock(false); breaking.classList.remove('show'); tint.style.opacity = ''; last.r = undefined; }
+      return;
+    }
+    inside = true;
+    if (!playing) render(raw * 1.08);
+  });
+
+  playBtn.addEventListener('click', () => {
     if (playing) return;
-    playing = true; btn.textContent = 'Playing…';
-    const t0 = performance.now(), dur = REDUCE ? 3000 : 12000;
+    playing = true; playBtn.disabled = true; playBtn.textContent = 'Playing…';
+    const t0 = performance.now(), dur = REDUCE ? 3000 : 14000;
     (function step(now) {
       const p = (now - t0) / dur; render(p);
-      if (p < 1) requestAnimationFrame(step); else { playing = false; btn.textContent = 'Play it again'; setTimeout(onScroll, 1500); }
+      if (p < 1 && inside) requestAnimationFrame(step);
+      else { playing = false; playBtn.disabled = false; playBtn.textContent = 'Play it again'; }
     })(t0);
   });
 })();
@@ -341,8 +361,7 @@ const Mood = (() => {
     track.style.transform = `translateX(${-(track.scrollWidth - innerWidth) * p}px)`;
   }
   addEventListener('resize', () => { size(); upd(); }); addEventListener('load', () => { size(); upd(); });
-  addEventListener('scroll', upd, { passive: true });
-  size(); upd();
+  size(); Scroll.on(upd);
 })();
 
 /* ---------- reactions: how did this make you feel? ---------- */
@@ -371,23 +390,40 @@ const Mood = (() => {
   }));
 })();
 
-/* ---------- custom cursor ---------- */
+/* ---------- cursor: viewfinder that locks onto what you can use ---------- */
 (() => {
   if (!matchMedia('(hover: hover) and (pointer: fine)').matches) return;
-  const c = document.querySelector('.cursor'), label = c.querySelector('.cursor-label');
-  document.body.classList.add('has-cursor');
-  let x = innerWidth / 2, y = innerHeight / 2, cx = x, cy = y;
-  addEventListener('pointermove', e => { x = e.clientX; y = e.clientY; c.classList.add('on'); });
-  document.addEventListener('pointerleave', () => c.classList.remove('on'));
-  const LABELS = [['#field', 'post'], ['.cert-card, .gallery figure', 'view'], ['.deck-track', 'swipe'], ['.mon', 'tune in'], ['a', 'open'], ['button', 'click']];
+  const frame = document.querySelector('.cur-frame'), dotEl = document.querySelector('.cur-dot'), label = frame.querySelector('.cur-label');
+  const B = document.body; B.classList.add('has-cursor');
+  const TARGETS = [['#field', 'Click to post', false], ['.cr-right', 'Hover the chart', false], ['.cert-card', 'View', true], ['.gallery figure', 'Enlarge', true],
+    ['.deck-nav', 'Next', true], ['.mon', 'Tune in', true], ['.tab', 'Switch', true], ['a', 'Open', true], ['button', 'Click', true]];
+  let mx = -100, my = -100, target = null, lockEl = null;
+  const cur = { x: -100, y: -100, w: 30, h: 30 };
+  addEventListener('pointermove', e => { mx = e.clientX; my = e.clientY; B.classList.add('cur-on'); }, { passive: true });
+  document.addEventListener('pointerleave', () => B.classList.remove('cur-on'));
+  addEventListener('pointerdown', () => B.classList.add('cur-down')); addEventListener('pointerup', () => B.classList.remove('cur-down'));
   addEventListener('pointerover', e => {
-    if (e.target.closest('input, textarea')) { c.classList.remove('on'); return; }
-    c.classList.add('on');
-    const hit = LABELS.find(([sel]) => e.target.closest(sel));
-    c.classList.toggle('big', !!hit && hit[0] !== '#field');
+    B.classList.toggle('cur-text', !!e.target.closest('input, textarea'));
+    const hit = TARGETS.find(([sel]) => e.target.closest(sel));
+    target = hit ? e.target.closest(hit[0]) : null;
+    lockEl = hit && hit[2] ? target : null;
     label.textContent = hit ? hit[1] : '';
+    B.classList.toggle('cur-lock', !!hit);
   });
-  (function loop() { cx += (x - cx) * .22; cy += (y - cy) * .22; c.style.transform = `translate(${cx}px, ${cy}px)`; requestAnimationFrame(loop); })();
+  (function loop() {
+    let tx, ty, tw, th;
+    if (lockEl && lockEl.isConnected) {
+      const r = lockEl.getBoundingClientRect(), pad = 6;
+      tx = r.left - pad; ty = r.top - pad; tw = r.width + pad * 2; th = r.height + pad * 2;
+      if (tw > innerWidth * .9 || th > innerHeight * .8) { tw = 46; th = 46; tx = mx - 23; ty = my - 23; }
+    } else { tw = tw || 30; th = 30; tw = 30; tx = mx - 15; ty = my - 15; }
+    const k = .24;
+    cur.x += (tx - cur.x) * k; cur.y += (ty - cur.y) * k; cur.w += (tw - cur.w) * k; cur.h += (th - cur.h) * k;
+    frame.style.transform = `translate(${cur.x.toFixed(1)}px, ${cur.y.toFixed(1)}px)`;
+    frame.style.width = cur.w.toFixed(1) + 'px'; frame.style.height = cur.h.toFixed(1) + 'px';
+    dotEl.style.transform = `translate(${mx}px, ${my}px)`;
+    requestAnimationFrame(loop);
+  })();
 })();
 
 /* =========================================================

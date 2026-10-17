@@ -8,10 +8,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans+Arabic:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=8">
+  <link rel="stylesheet" href="style.css?v=9">
 </head>
 <body data-mood="calm">
-  <div class="cursor" aria-hidden="true"><span class="cursor-label"></span></div>
+  <div class="cur-frame" aria-hidden="true"><i></i><i></i><i></i><i></i><span class="cur-label"></span></div>
+  <div class="cur-dot" aria-hidden="true"></div>
   <div class="tint" aria-hidden="true"></div>
 
   <!-- ============ TOP BAR ============ -->
@@ -129,43 +130,46 @@
     <!-- ============ CRISIS: scroll-driven scene ============ -->
     <section id="crisis" class="crisis" aria-label="How I handle a crisis">
       <div class="crisis-stage">
-        <h2 class="chy"><span class="chy-time" id="crClock">09:00</span><span class="chy-title">When a crisis breaks</span></h2>
-        <p class="cr-scenario">Illustrative scenario: a city-wide power outage. Keep scrolling to watch it unfold.</p>
-        <div class="cr-grid">
-          <div class="cr-left">
-            <div class="cr-stat"><span class="cr-num" id="crMentions">40</span><span class="cr-lbl">mentions per hour</span></div>
+        <div class="cr-top">
+          <h2 class="chy"><span class="chy-time" id="crClock">09:00</span><span class="chy-title">When a crisis breaks</span></h2>
+          <div class="cr-stats">
+            <div class="cr-stat"><span class="cr-num" id="crMentions">40</span><span class="cr-lbl">mentions / hour</span></div>
             <div class="cr-stat"><span class="cr-num neg" id="crNeg">15%</span><span class="cr-lbl">negative share</span></div>
-            <ol class="cr-steps" id="crSteps">
-              <li><b>Detect</b>Unusual spike in volume</li>
-              <li><b>Assess</b>PR risk and public sentiment</li>
-              <li><b>Escalate</b>Alert the response team</li>
-              <li><b>Brief</b>Real-time briefing to leadership</li>
-              <li><b>Communicate</b>Stakeholder updates go out</li>
-              <li><b>Recover</b>Sentiment returns to normal</li>
-            </ol>
-          </div>
-          <div class="cr-right">
-            <svg class="cr-chart" id="crChart" viewBox="0 0 600 320" preserveAspectRatio="none" aria-hidden="true">
-              <defs>
-                <linearGradient id="crFill" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="var(--now)" stop-opacity=".45"/><stop offset="1" stop-color="var(--now)" stop-opacity="0"/></linearGradient>
-                <clipPath id="crClip"><rect id="crClipRect" x="0" y="0" width="0" height="320"/></clipPath>
-              </defs>
-              <g class="cr-grid-lines"><line x1="0" y1="80" x2="600" y2="80"/><line x1="0" y1="160" x2="600" y2="160"/><line x1="0" y1="240" x2="600" y2="240"/></g>
-              <g clip-path="url(#crClip)"><path id="crArea" fill="url(#crFill)"/><path id="crLine" class="cr-line"/></g>
-              <circle id="crDot" r="6" class="cr-dot"/>
-            </svg>
-            <div class="posts" id="posts">
-              <div class="post neg" data-at=".2"  style="--x:4%;--y:6%">Still no power in our neighborhood. Any update?</div>
-              <div class="post neg" data-at=".26" style="--x:46%;--y:20%" lang="ar" dir="rtl">الكهرباء مقطوعة من الصبح ولا أحد يرد</div>
-              <div class="post neg" data-at=".33" style="--x:12%;--y:44%">Third outage this week, this is unacceptable</div>
-              <div class="post neg" data-at=".4"  style="--x:52%;--y:58%" lang="ar" dir="rtl">متى يرجع التيار؟ الأطفال في البيت</div>
-              <div class="post pos" data-at=".74" style="--x:8%;--y:14%">Power is back, thanks for the quick fix</div>
-              <div class="post pos" data-at=".8"  style="--x:50%;--y:36%" lang="ar" dir="rtl">شكراً على سرعة الاستجابة</div>
-              <div class="post pos" data-at=".86" style="--x:18%;--y:64%">Clear updates from the team today, appreciated</div>
-            </div>
-            <p class="posts-note">Illustrative posts, not real accounts.</p>
+            <div class="cr-stat cr-phase-wrap"><span class="cr-phase" id="crPhase">All quiet</span><span class="cr-lbl">status</span></div>
           </div>
         </div>
+        <p class="cr-scenario">Illustrative scenario: a city-wide power outage. Scroll to play it, or press <b>Play it live</b>.</p>
+        <div class="cr-right">
+          <svg class="cr-chart" id="crChart" viewBox="0 0 600 320" preserveAspectRatio="none" aria-hidden="true">
+            <defs>
+              <linearGradient id="crFill" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#FF3B4E" stop-opacity=".4"/><stop offset="1" stop-color="#FF3B4E" stop-opacity="0"/></linearGradient>
+              <clipPath id="crClip"><rect id="crClipRect" x="0" y="0" width="0" height="320"/></clipPath>
+            </defs>
+            <g class="cr-grid-lines"><line x1="0" y1="80" x2="600" y2="80"/><line x1="0" y1="160" x2="600" y2="160"/><line x1="0" y1="240" x2="600" y2="240"/></g>
+            <path id="crGhost" class="cr-ghost"/>
+            <g clip-path="url(#crClip)"><path id="crArea" fill="url(#crFill)"/><path id="crLine" class="cr-line"/></g>
+          </svg>
+          <span class="cr-dot" id="crDot" aria-hidden="true"></span>
+          <div class="posts" id="posts">
+            <div class="post neg" data-at=".2"  style="--x:4%;--y:8%">Still no power in our neighborhood. Any update?</div>
+            <div class="post neg" data-at=".26" style="--x:50%;--y:18%" lang="ar" dir="rtl">الكهرباء مقطوعة من الصبح ولا أحد يرد</div>
+            <div class="post neg" data-at=".33" style="--x:8%;--y:42%">Third outage this week, this is unacceptable</div>
+            <div class="post neg" data-at=".4"  style="--x:54%;--y:50%" lang="ar" dir="rtl">متى يرجع التيار؟ الأطفال في البيت</div>
+            <div class="post pos" data-at=".74" style="--x:6%;--y:12%">Power is back, thanks for the quick fix</div>
+            <div class="post pos" data-at=".8"  style="--x:52%;--y:30%" lang="ar" dir="rtl">شكراً على سرعة الاستجابة</div>
+            <div class="post pos" data-at=".86" style="--x:14%;--y:52%">Clear updates from the team today, appreciated</div>
+          </div>
+          <button class="cr-play" id="crPlay" type="button">Play it live</button>
+          <p class="posts-note">Illustrative posts, not real accounts.</p>
+        </div>
+        <ol class="cr-steps" id="crSteps">
+          <li><b>Detect</b><span>Unusual spike in volume</span></li>
+          <li><b>Assess</b><span>PR risk and public sentiment</span></li>
+          <li><b>Escalate</b><span>Alert the response team</span></li>
+          <li><b>Brief</b><span>Real-time briefing to leadership</span></li>
+          <li><b>Communicate</b><span>Stakeholder updates go out</span></li>
+          <li><b>Recover</b><span>Sentiment back to normal</span></li>
+        </ol>
       </div>
     </section>
 
@@ -383,6 +387,6 @@
     <button class="lb-nav lb-next" aria-label="Next">›</button>
   </div>
 
-  <script src="script.js?v=8"></script>
+  <script src="script.js?v=9"></script>
 </body>
 </html>
