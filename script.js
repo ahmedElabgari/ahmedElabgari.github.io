@@ -1,111 +1,393 @@
-/* =========================================================
-   HERO: "signal from noise"
-   Thousands of glyphs (Latin, Arabic, digits, @ and #) drift
-   like raw media chatter, then lock into Ahmed's name.
-   The cursor scatters them back into noise.
-   ========================================================= */
+/* =====================================================================
+   Ahmed Elabgari — "On air" broadcast portfolio
+   ===================================================================== */
+const REDUCE = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
+const COL = { pos: '#5BE3B5', neu: '#6F8DB8', neg: '#FF6B7A', alert: '#FF3B4E', paper: '#F2F4F7', amber: '#FFB547' };
+
+/* ---------- mood system: each section sets the page mood ---------- */
+const Mood = (() => {
+  const LABEL = { calm: 'Calm', signal: 'Signal', crisis: 'Crisis', response: 'Response', recovery: 'Recovery', resolved: 'Resolved' };
+  let current = 'calm', locked = false;
+  const set = m => {
+    if (m === current) return;
+    current = m; document.body.dataset.mood = m;
+    const el = document.getElementById('railMood'); if (el) el.textContent = LABEL[m] || m;
+  };
+  const io = new IntersectionObserver(es => {
+    if (locked) return;
+    es.forEach(e => { if (e.isIntersecting) set(e.target.dataset.mood); });
+  }, { rootMargin: '-45% 0px -45% 0px' });
+  document.querySelectorAll('[data-mood]:not(body)').forEach(s => io.observe(s));
+  return { set, lock: v => { locked = v; }, get: () => current };
+})();
+
+/* ---------- HERO: every dot is a mention ---------- */
 (() => {
-  const cv = document.getElementById('signal');
+  const cv = document.getElementById('field');
   if (!cv) return;
   const ctx = cv.getContext('2d');
-  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const GLYPHS = '01#@%&+*=<>/ابتجحدرسصطعفقكلمنهوي'.split('');
-  const C = { noise: 'rgba(91,140,196,.42)', signal: '#EAF0F7', hot: '#F59FAE', mint: '#6FE3C1' };
-  let W, H, dpr, pts = [], glyph = 8, start = performance.now();
+  let W, H, pts = [], r = 2, start = 0;
   const mouse = { x: -9999, y: -9999 };
+  const pick = () => { const v = Math.random(); return v < .42 ? 'pos' : v < .86 ? 'neu' : 'neg'; };
 
   function targets() {
-    const off = document.createElement('canvas');
-    off.width = W; off.height = H;
+    const off = document.createElement('canvas'); off.width = W; off.height = H;
     const o = off.getContext('2d');
-    const twoLines = W < 820;
-    const lines = twoLines ? ['AHMED', 'ELABGARI'] : ['AHMED ELABGARI'];
-    let size = twoLines ? W * 0.2 : W * 0.105;
-    size = Math.min(size, H * (twoLines ? 0.17 : 0.24));
-    const setFont = () => o.font = `800 ${size}px "Bricolage Grotesque", "IBM Plex Sans", sans-serif`;
-    setFont();
-    const widest = Math.max(...lines.map(l => o.measureText(l).width));
-    const maxW = W * (twoLines ? 0.88 : 0.86);
-    if (widest > maxW) { size *= maxW / widest; setFont(); }
+    const two = W < 820;
+    const lines = two ? ['AHMED', 'ELABGARI'] : ['AHMED ELABGARI'];
+    let size = two ? W * .22 : W * .11;
+    size = Math.min(size, H * (two ? .17 : .26));
+    const font = () => o.font = `900 ${size}px "Archivo", "IBM Plex Sans", sans-serif`;
+    font();
+    const widest = Math.max(...lines.map(l => o.measureText(l).width)), maxW = W * (two ? .9 : .86);
+    if (widest > maxW) { size *= maxW / widest; font(); }
     o.textAlign = 'center'; o.textBaseline = 'middle'; o.fillStyle = '#fff';
-    const cy = H * (twoLines ? 0.34 : 0.42);
-    lines.forEach((l, i) => o.fillText(l, W / 2, cy + (i - (lines.length - 1) / 2) * size * 0.98));
-    const step = Math.max(4, Math.round(size / 24));
-    glyph = step * 1.55;
-    const data = o.getImageData(0, 0, W, H).data, out = [];
-    for (let y = 0; y < H; y += step)
-      for (let x = 0; x < W; x += step)
-        if (data[(y * W + x) * 4 + 3] > 140) out.push([x, y]);
+    const cy = H * (two ? .38 : .44);
+    lines.forEach((l, i) => o.fillText(l, W / 2, cy + (i - (lines.length - 1) / 2) * size * .95));
+    const step = Math.max(5, Math.round(size / 20));
+    r = step * .36;
+    const d = o.getImageData(0, 0, W, H).data, out = [];
+    for (let y = 0; y < H; y += step) for (let x = 0; x < W; x += step) if (d[(y * W + x) * 4 + 3] > 140) out.push([x, y]);
     return out;
   }
-
+  const mk = (x, y, tx, ty, s) => ({ x, y, vx: 0, vy: 0, tx, ty, s: s || pick(), heat: 0, delay: Math.random() * 900, life: -1 });
   function build() {
-    dpr = Math.min(devicePixelRatio || 1, 2);
-    W = cv.clientWidth; H = cv.clientHeight;
-    cv.width = W * dpr; cv.height = H * dpr;
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    const t = targets();
-    const extra = Math.min(1400, Math.round(W * H / 1800));
-    pts = [];
-    const mk = (tx, ty) => ({
-      x: Math.random() * W, y: Math.random() * H, vx: 0, vy: 0, tx, ty,
-      ch: GLYPHS[(Math.random() * GLYPHS.length) | 0], heat: 0, delay: Math.random() * 900
-    });
-    t.forEach(([x, y]) => pts.push(mk(x, y)));
-    for (let i = 0; i < extra; i++) pts.push(mk(null, null));
-    if (reduce) pts.forEach(p => { if (p.tx !== null) { p.x = p.tx; p.y = p.ty; } });
+    const dpr = Math.min(devicePixelRatio || 1, 2);
+    W = cv.clientWidth; H = cv.clientHeight; cv.width = W * dpr; cv.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    pts = targets().map(([x, y]) => mk(Math.random() * W, Math.random() * H, x, y));
+    const extra = Math.min(1100, Math.round(W * H / 2200));
+    for (let i = 0; i < extra; i++) pts.push(mk(Math.random() * W, Math.random() * H, null, null));
+    if (REDUCE) pts.forEach(p => { if (p.tx !== null) { p.x = p.tx; p.y = p.ty; } });
     start = performance.now();
   }
-
-  function frame(now) {
-    const el = now - start;
-    const disp = reduce ? 0 : Math.min(1, Math.max(0, scrollY / (H * 0.85)));
-    ctx.clearRect(0, 0, W, H);
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    const R = Math.min(150, W * 0.14), R2 = R * R;
-    const noise = [], sig = [], hot = [];
-    for (const p of pts) {
-      const dx = p.x - mouse.x, dy = p.y - mouse.y, d2 = dx * dx + dy * dy;
-      if (d2 < R2) {
-        const d = Math.sqrt(d2) || 1, f = (1 - d / R) * 2.6;
-        p.vx += dx / d * f; p.vy += dy / d * f; p.heat = 1;
-      }
-      if (p.tx !== null && el > 400 + p.delay && disp < 0.98) {
-        const pull = 0.012 * (1 - disp);
-        p.vx += (p.tx - p.x) * pull; p.vy += (p.ty - p.y) * pull;
-        if (disp > 0.02) { p.vx += (Math.random() - .5) * disp * 2.2; p.vy += (Math.random() - .3) * disp * 1.6; }
-        p.vx *= 0.86; p.vy *= 0.86;
-      } else {
-        const a = Math.sin(p.x * 0.004 + now * 0.0003) * Math.cos(p.y * 0.005 - now * 0.0002) * Math.PI * 2;
-        p.vx += Math.cos(a) * 0.05; p.vy += Math.sin(a) * 0.05;
-        p.vx *= 0.96; p.vy *= 0.96;
-        if (p.x < -20) p.x = W + 20; if (p.x > W + 20) p.x = -20;
-        if (p.y < -20) p.y = H + 20; if (p.y > H + 20) p.y = -20;
-      }
-      p.x += p.vx; p.y += p.vy;
-      p.heat *= 0.965;
-      if (Math.random() < 0.002) p.ch = GLYPHS[(Math.random() * GLYPHS.length) | 0];
-      (p.heat > 0.15 ? hot : (p.tx !== null && disp < 0.5) ? sig : noise).push(p);
+  // click: post a burst of new mentions
+  cv.addEventListener('pointerdown', e => {
+    const b = cv.getBoundingClientRect(), x = e.clientX - b.left, y = e.clientY - b.top;
+    for (let i = 0; i < 70; i++) {
+      const a = Math.random() * Math.PI * 2, sp = 2 + Math.random() * 6;
+      const p = mk(x, y, null, null); p.vx = Math.cos(a) * sp; p.vy = Math.sin(a) * sp; p.life = 260; pts.push(p);
     }
-    ctx.font = `500 ${glyph * 0.8}px "IBM Plex Mono", monospace`;
-    ctx.fillStyle = C.noise; noise.forEach(p => ctx.fillText(p.ch, p.x, p.y));
-    ctx.font = `600 ${glyph}px "IBM Plex Mono", monospace`;
-    ctx.fillStyle = C.signal; sig.forEach(p => ctx.fillText(p.ch, p.x, p.y));
-    ctx.fillStyle = C.hot; hot.forEach(p => ctx.fillText(p.ch, p.x, p.y));
+  });
+  function frame(now) {
+    const el = now - start, disp = REDUCE ? 0 : clamp(scrollY / (H * .85));
+    ctx.clearRect(0, 0, W, H);
+    const R = Math.min(140, W * .14), R2 = R * R;
+    const buckets = { pos: [], neu: [], neg: [], name: [], hot: [] };
+    for (let i = pts.length - 1; i >= 0; i--) {
+      const p = pts[i];
+      const dx = p.x - mouse.x, dy = p.y - mouse.y, d2 = dx * dx + dy * dy;
+      if (d2 < R2) { const d = Math.sqrt(d2) || 1, f = (1 - d / R) * 2.2; p.vx += dx / d * f; p.vy += dy / d * f; p.heat = 1; }
+      if (p.tx !== null && el > 300 + p.delay && disp < .98) {
+        const pull = .014 * (1 - disp);
+        p.vx += (p.tx - p.x) * pull; p.vy += (p.ty - p.y) * pull;
+        if (disp > .02) { p.vx += (Math.random() - .5) * disp * 2.4; p.vy += (Math.random() - .2) * disp * 1.8; }
+        p.vx *= .85; p.vy *= .85;
+      } else {
+        const a = Math.sin(p.x * .004 + now * .0003) * Math.cos(p.y * .005 - now * .0002) * Math.PI * 2;
+        p.vx += Math.cos(a) * .04; p.vy += Math.sin(a) * .04; p.vx *= .965; p.vy *= .965;
+        if (p.x < -10) p.x = W + 10; if (p.x > W + 10) p.x = -10; if (p.y < -10) p.y = H + 10; if (p.y > H + 10) p.y = -10;
+      }
+      p.x += p.vx; p.y += p.vy; p.heat *= .975;
+      if (p.life > 0 && --p.life === 0) { pts.splice(i, 1); continue; }
+      if (p.heat > .12) buckets.hot.push(p);
+      else if (p.tx !== null && disp < .5) buckets.name.push(p);
+      else buckets[p.s].push(p);
+    }
+    const draw = (arr, col, rad, alpha = 1) => {
+      ctx.globalAlpha = alpha; ctx.fillStyle = col; ctx.beginPath();
+      arr.forEach(p => { ctx.moveTo(p.x + rad, p.y); ctx.arc(p.x, p.y, rad, 0, 6.283); }); ctx.fill();
+    };
+    draw(buckets.neu, COL.neu, r * .8, .55); draw(buckets.pos, COL.pos, r * .8, .6); draw(buckets.neg, COL.neg, r * .8, .6);
+    // name dots: tinted by their own sentiment, mostly paper white
+    draw(buckets.name.filter(p => p.s !== 'neg'), COL.paper, r, 1);
+    draw(buckets.name.filter(p => p.s === 'neg'), '#D7DEE9', r, 1);
+    draw(buckets.hot, COL.alert, r * 1.05, 1);
+    ctx.globalAlpha = 1;
     if (running) raf = requestAnimationFrame(frame);
   }
-
   let raf, running = false;
   const play = () => { if (!running) { running = true; raf = requestAnimationFrame(frame); } };
   const stop = () => { running = false; cancelAnimationFrame(raf); };
-
-  cv.addEventListener('pointermove', e => { const r = cv.getBoundingClientRect(); mouse.x = e.clientX - r.left; mouse.y = e.clientY - r.top; });
+  cv.addEventListener('pointermove', e => { const b = cv.getBoundingClientRect(); mouse.x = e.clientX - b.left; mouse.y = e.clientY - b.top; });
   cv.addEventListener('pointerleave', () => { mouse.x = mouse.y = -9999; });
   let rt; addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(build, 200); });
   new IntersectionObserver(([e]) => e.isIntersecting ? play() : stop()).observe(cv);
+  (document.fonts ? document.fonts.load('900 80px "Archivo"') : Promise.resolve()).catch(() => {}).then(() => { build(); play(); });
+})();
 
-  (document.fonts ? document.fonts.load('800 80px "Bricolage Grotesque"') : Promise.resolve())
-    .catch(() => {}).then(() => { build(); play(); });
+/* ---------- story rail: broadcast clock + sentiment trace ---------- */
+(() => {
+  const clock = document.getElementById('railClock'), svg = document.getElementById('railTrace');
+  if (!clock || !svg) return;
+  const path = svg.querySelector('.rail-path'), dot = svg.querySelector('.rail-dot');
+  const SENT = { calm: .55, signal: .25, crisis: -.8, response: -.1, recovery: .6, resolved: .8 };
+  let pts = [];
+  function layout() {
+    const max = document.documentElement.scrollHeight;
+    pts = [];
+    document.querySelectorAll('main > section, .hero').forEach(s => {
+      const top = s.offsetTop / max, h = s.offsetHeight / max;
+      if (s.id === 'crisis') {
+        [[0, .25], [.15, -.3], [.35, -.9], [.6, -.6], [.8, .2], [1, .55]].forEach(([f, v]) => pts.push([top + h * f, v]));
+      } else pts.push([top + h * .5, SENT[s.dataset.mood] ?? .4]);
+    });
+    pts.sort((a, b) => a[0] - b[0]);
+    const x = v => 20 + v * 16;
+    path.setAttribute('d', pts.map(([y, v], i) => `${i ? 'L' : 'M'}${x(v).toFixed(1)} ${(y * 400).toFixed(1)}`).join(' '));
+  }
+  function at(f) {
+    for (let i = 1; i < pts.length; i++) if (f <= pts[i][0]) {
+      const [y0, v0] = pts[i - 1], [y1, v1] = pts[i]; return v0 + (v1 - v0) * clamp((f - y0) / ((y1 - y0) || 1));
+    }
+    return pts.length ? pts[pts.length - 1][1] : 0;
+  }
+  function update() {
+    const max = document.documentElement.scrollHeight - innerHeight;
+    const f = max > 0 ? scrollY / max : 0;
+    const mins = 6 * 60 + Math.round(f * 8 * 60);
+    clock.textContent = String(Math.floor(mins / 60)).padStart(2, '0') + ':' + String(mins % 60).padStart(2, '0');
+    const yf = (scrollY + innerHeight / 2) / document.documentElement.scrollHeight;
+    dot.setAttribute('cy', (yf * 400).toFixed(1)); dot.setAttribute('cx', (20 + at(yf) * 16).toFixed(1));
+  }
+  addEventListener('load', () => { layout(); update(); });
+  addEventListener('resize', () => { layout(); update(); });
+  addEventListener('scroll', update, { passive: true });
+  layout(); update();
+})();
+
+/* ---------- story: teleprompter words light as you scroll ---------- */
+(() => {
+  const p = document.querySelector('[data-split]'), sec = document.getElementById('story');
+  if (!p) return;
+  const TONE = { 'attention.': 'neu', 'mood': 'pos', 'clear': 'pos', 'briefing': 'pos', 'crisis': 'neg', 'breaks.': 'neg' };
+  p.innerHTML = p.textContent.trim().split(/\s+/).map(w => `<span class="w ${TONE[w] || ''}">${w}</span>`).join(' ');
+  const spans = [...p.querySelectorAll('.w')];
+  const upd = () => {
+    const r = sec.getBoundingClientRect(), prog = clamp(-r.top / (r.height - innerHeight) * 1.1);
+    const n = Math.round(prog * spans.length);
+    spans.forEach((s, i) => s.classList.toggle('lit', REDUCE || i < n));
+  };
+  addEventListener('scroll', upd, { passive: true }); upd();
+})();
+
+/* ---------- sentiment analyzer (keyword model, EN + AR) ---------- */
+(() => {
+  const input = document.getElementById('sentiInput');
+  if (!input) return;
+  const LEX = {
+    good: 1, great: 1.5, love: 1.5, excellent: 2, amazing: 2, fast: 1, quick: 1, thanks: 1.2, thank: 1.2, happy: 1.3,
+    resolved: 1, fixed: 1, restored: 1.2, back: .5, helpful: 1.2, best: 1.5, awesome: 1.8, perfect: 1.8, appreciate: 1.3,
+    smooth: 1, recommend: 1.2, nice: 1, wonderful: 1.8, pleased: 1.2, satisfied: 1.2, professional: 1, clear: .6,
+    bad: -1.2, slow: -1, outage: -1.6, blackout: -1.8, down: -.6, angry: -1.6, terrible: -2, awful: -2, worst: -2,
+    delay: -1, delayed: -1, problem: -.8, issue: -.5, issues: -.6, broken: -1.3, fail: -1.3, failed: -1.4, failure: -1.4,
+    poor: -1.2, hate: -1.8, disappointed: -1.5, complaint: -1, unacceptable: -2, crisis: -1.2, expensive: -.8, rude: -1.5,
+    ignored: -1.4, waiting: -.6, nobody: -.8, never: -.4,
+    'شكرا': 1.2, 'شكراً': 1.2, 'ممتاز': 2, 'ممتازة': 2, 'رائع': 1.8, 'رائعة': 1.8, 'سريع': 1, 'سريعة': 1, 'جميل': 1.2,
+    'احب': 1.4, 'أحب': 1.4, 'سعيد': 1.3, 'حل': .8, 'الحل': .8, 'عادت': 1, 'رجعت': 1, 'افضل': 1.3, 'أفضل': 1.3,
+    'مميز': 1.4, 'جيد': 1, 'جيدة': 1, 'شاكر': 1.2, 'تحسن': 1,
+    'انقطاع': -1.6, 'انقطع': -1.6, 'سيء': -1.4, 'سيئ': -1.4, 'سيئة': -1.4, 'بطيء': -1, 'بطء': -1, 'مشكلة': -.9,
+    'مشاكل': -1, 'تأخير': -1, 'تأخر': -1, 'غاضب': -1.6, 'أسوأ': -2, 'اسوأ': -2, 'ضعيف': -1.2, 'عطل': -1.2,
+    'معطل': -1.2, 'فاشل': -1.6, 'مستمر': -.5, 'زعلان': -1.3, 'غالي': -.8
+  };
+  const NEG = new Set(['not', 'no', "don't", "didn't", "isn't", "wasn't", "can't", "won't", 'without', 'لا', 'لم', 'ليس', 'ما', 'غير', 'بدون']);
+  const BUT = new Set(['but', 'however', 'although', 'لكن', 'ولكن', 'بس']);
+  const norm = w => {
+    let t = w.toLowerCase().replace(/[ً-ْ]/g, '');
+    if (LEX[t] !== undefined) return t;
+    if (/^و/.test(t) && LEX[t.slice(1)] !== undefined) return t.slice(1);
+    if (/^ال/.test(t) && LEX[t.slice(2)] !== undefined) return t.slice(2);
+    if (/^وال/.test(t) && LEX[t.slice(3)] !== undefined) return t.slice(3);
+    return t;
+  };
+  const label = document.getElementById('sentiLabel'), score = document.getElementById('sentiScore'),
+        out = document.getElementById('sentiTokens'), desk = document.querySelector('.desk'),
+        mouth = document.querySelector('.mf-mouth'), mark = document.getElementById('scaleMark');
+  const esc = t => t.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  function run() {
+    const parts = input.value.match(/[\p{L}\p{N}'’]+|[^\p{L}\p{N}'’]+/gu) || [];
+    let sum = 0, negLeft = 0, boost = 1, html = '';
+    for (const part of parts) {
+      if (!/[\p{L}\p{N}]/u.test(part)) { html += esc(part); continue; }
+      const w = norm(part.replace('’', "'"));
+      if (BUT.has(w)) { boost = 1.5; html += esc(part); continue; }
+      if (NEG.has(w)) { negLeft = 3; html += `<span class="tx">${esc(part)}</span>`; continue; }
+      let v = LEX[w];
+      if (v !== undefined) {
+        if (negLeft > 0) { v = -v * .8; negLeft = 0; }
+        v *= boost; sum += v;
+        html += `<span class="${v > 0 ? 'tp' : 'tn'}">${esc(part)}</span>`;
+      } else { html += esc(part); }
+      if (negLeft > 0) negLeft--;
+    }
+    const sc = sum / (Math.abs(sum) + 2);
+    const kind = sc > .2 ? 'pos' : sc < -.2 ? 'neg' : 'neu';
+    label.textContent = { pos: 'Positive', neg: 'Negative', neu: 'Mixed' }[kind];
+    score.textContent = 'score ' + (sc >= 0 ? '+' : '') + sc.toFixed(2);
+    desk.style.setProperty('--face', `var(--${kind})`);
+    const e = 84 - sc * 6, c = 84 + sc * 18;
+    mouth.setAttribute('d', `M36 ${e.toFixed(1)} Q60 ${c.toFixed(1)} 84 ${e.toFixed(1)}`);
+    mark.style.left = ((sc + 1) / 2 * 100).toFixed(1) + '%';
+    out.innerHTML = html || '<span class="dim">Type something to see which words drive the score.</span>';
+  }
+  input.addEventListener('input', run);
+  document.querySelectorAll('[data-ex]').forEach(b => b.addEventListener('click', () => { input.value = b.dataset.ex; run(); input.focus(); }));
+  run();
+})();
+
+
+/* ---------- crisis: scroll-driven scenario ---------- */
+(() => {
+  const sec = document.getElementById('crisis');
+  if (!sec) return;
+  const $ = id => document.getElementById(id);
+  const line = $('crLine'), area = $('crArea'), dot = $('crDot'), clip = $('crClipRect');
+  const mentions = $('crMentions'), negEl = $('crNeg'), clockEl = $('crClock');
+  const steps = [...document.querySelectorAll('#crSteps li')], posts = [...document.querySelectorAll('.post')];
+  const breaking = $('breaking'), brText = $('breakingText');
+  const right = document.querySelector('.cr-right');
+  const W = 600, H = 320, N = 160;
+  // the scenario curve: calm, spike, plateau, recovery
+  const vol = t => 40 + 1100 * Math.exp(-Math.pow((t - .42) / .13, 2)) + 260 * Math.exp(-Math.pow((t - .6) / .1, 2));
+  const neg = t => 15 + 58 * Math.exp(-Math.pow((t - .45) / .17, 2)) - 6 * clamp((t - .75) * 4);
+  const MAXV = 1250;
+  const X = t => t * W, Y = v => H - 20 - v / MAXV * (H - 50);
+  let d = '';
+  for (let i = 0; i <= N; i++) { const t = i / N; d += `${i ? 'L' : 'M'}${X(t).toFixed(1)} ${Y(vol(t)).toFixed(1)}`; }
+  line.setAttribute('d', d); area.setAttribute('d', d + ` L${W} ${H} L0 ${H} Z`);
+  const STEP_AT = [.2, .3, .4, .5, .6, .78];
+  const fmtTime = t => { const m = 9 * 60 + Math.round(t * 150); return String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0'); };
+
+  // tooltip on hover
+  const tip = document.createElement('div'); tip.className = 'cr-tip'; right.appendChild(tip);
+  right.addEventListener('pointermove', e => {
+    const b = right.getBoundingClientRect(), t = clamp((e.clientX - b.left) / b.width);
+    tip.style.left = (e.clientX - b.left) + 'px'; tip.style.top = (Y(vol(t)) / H * b.height) + 'px';
+    tip.textContent = `${fmtTime(t)}  ${Math.round(vol(t))}/h  ${Math.round(neg(t))}% neg`;
+  });
+
+  function render(p) {
+    const t = clamp(p);
+    clip.setAttribute('width', (t * W).toFixed(1));
+    dot.setAttribute('cx', X(t)); dot.setAttribute('cy', Y(vol(t)));
+    mentions.textContent = Math.round(vol(t)).toLocaleString();
+    negEl.textContent = Math.round(neg(t)) + '%';
+    clockEl.textContent = fmtTime(t);
+    steps.forEach((s, i) => { s.className = t >= STEP_AT[i] ? (t >= (STEP_AT[i + 1] ?? 1.1) ? 'done' : 'on') : ''; });
+    if (t >= .92) steps.forEach(s => s.className = 'done');
+    posts.forEach(el => {
+      const at = +el.dataset.at, isNeg = el.classList.contains('neg');
+      el.classList.toggle('show', t >= at && (!isNeg || t < .68));
+    });
+    // page mood follows the scenario
+    const inView = sec.getBoundingClientRect().top < innerHeight * .5 && sec.getBoundingClientRect().bottom > innerHeight * .5;
+    if (inView) {
+      Mood.lock(true);
+      const mood = t < .18 ? 'signal' : t < .66 ? 'crisis' : t < .9 ? 'response' : 'recovery';
+      Mood.set(mood);
+      document.body.style.setProperty('--crisis', clamp((neg(t) - 20) / 40).toFixed(2));
+      breaking.classList.toggle('resolved', t >= .9);
+      breaking.classList.toggle('show', t >= .9 && t < 1);
+      brText.textContent = t < .5 ? 'Negative mentions surge across platforms. Escalation underway.'
+        : t < .9 ? 'Briefing delivered to leadership. Stakeholder updates going out.'
+        : 'Resolved: sentiment back to normal.';
+    } else { Mood.lock(false); breaking.classList.remove('show'); }
+  }
+  let playing = false;
+  const onScroll = () => {
+    if (playing) return;
+    const r = sec.getBoundingClientRect();
+    render(-r.top / (r.height - innerHeight));
+  };
+  addEventListener('scroll', onScroll, { passive: true }); onScroll();
+
+  // "Play it live": run the whole scenario on a timer
+  const btn = document.createElement('button'); btn.className = 'cr-play'; btn.type = 'button'; btn.textContent = 'Play it live';
+  right.appendChild(btn);
+  btn.addEventListener('click', () => {
+    if (playing) return;
+    playing = true; btn.textContent = 'Playing…';
+    const t0 = performance.now(), dur = REDUCE ? 3000 : 12000;
+    (function step(now) {
+      const p = (now - t0) / dur; render(p);
+      if (p < 1) requestAnimationFrame(step); else { playing = false; btn.textContent = 'Play it again'; setTimeout(onScroll, 1500); }
+    })(t0);
+  });
+})();
+
+/* ---------- coverage wall: sideways track + tune-in screens ---------- */
+(() => {
+  const sec = document.getElementById('coverage'), track = sec && sec.querySelector('.wall-track');
+  if (!track) return;
+  // a small line chart on every monitor
+  sec.querySelectorAll('.mon-viz path').forEach((p, k) => {
+    let d = '', y = 40;
+    for (let i = 0; i <= 40; i++) {
+      y = clamp(y + (Math.random() - .5) * 18 + (k === 1 && i === 22 ? -30 : 0), 8, 72);
+      d += `${i ? 'L' : 'M'}${(i * 7.5).toFixed(1)} ${y.toFixed(1)}`;
+    }
+    p.setAttribute('d', d);
+  });
+  const mq = matchMedia('(min-width: 901px)');
+  const io = new IntersectionObserver(es => es.forEach(e => e.isIntersecting && e.target.classList.add('seen')), { threshold: .6 });
+  sec.querySelectorAll('.mon').forEach(m => io.observe(m));
+  function size() {
+    if (!mq.matches || REDUCE) { sec.style.height = ''; track.style.transform = ''; return; }
+    sec.style.height = (track.scrollWidth - innerWidth + innerHeight * 1.2) + 'px';
+  }
+  function upd() {
+    if (!mq.matches || REDUCE) return;
+    const r = sec.getBoundingClientRect(), p = clamp(-r.top / (r.height - innerHeight));
+    track.style.transform = `translateX(${-(track.scrollWidth - innerWidth) * p}px)`;
+  }
+  addEventListener('resize', () => { size(); upd(); }); addEventListener('load', () => { size(); upd(); });
+  addEventListener('scroll', upd, { passive: true });
+  size(); upd();
+})();
+
+/* ---------- reactions: how did this make you feel? ---------- */
+(() => {
+  const reply = document.getElementById('reactReply');
+  const TEXT = {
+    pos: 'Glad it landed well. Let’s talk about what we can build together.',
+    neu: 'Fair enough. Give me fifteen minutes on a call to change your mind.',
+    neg: 'Noted, and every crisis is a chance to recover. Tell me what to improve.'
+  };
+  document.querySelectorAll('[data-react]').forEach(b => b.addEventListener('click', () => {
+    const k = b.dataset.react;
+    document.querySelectorAll('[data-react]').forEach(x => x.classList.toggle('picked', x === b));
+    reply.textContent = TEXT[k];
+    if (REDUCE) return;
+    const r = b.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    const col = { pos: COL.pos, neu: COL.neu, neg: COL.neg }[k];
+    for (let i = 0; i < 36; i++) {
+      const s = document.createElement('span'); s.className = 'burst'; s.style.background = col;
+      s.style.left = cx + 'px'; s.style.top = cy + 'px'; document.body.appendChild(s);
+      const a = Math.random() * Math.PI * 2, dist = 60 + Math.random() * 140;
+      s.animate([{ transform: 'translate(-50%,-50%) scale(1)', opacity: 1 },
+        { transform: `translate(${Math.cos(a) * dist - 4}px, ${Math.sin(a) * dist + 40}px) scale(.3)`, opacity: 0 }],
+        { duration: 900 + Math.random() * 500, easing: 'cubic-bezier(.2,.8,.3,1)' }).onfinish = () => s.remove();
+    }
+  }));
+})();
+
+/* ---------- custom cursor ---------- */
+(() => {
+  if (!matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+  const c = document.querySelector('.cursor'), label = c.querySelector('.cursor-label');
+  document.body.classList.add('has-cursor');
+  let x = innerWidth / 2, y = innerHeight / 2, cx = x, cy = y;
+  addEventListener('pointermove', e => { x = e.clientX; y = e.clientY; c.classList.add('on'); });
+  document.addEventListener('pointerleave', () => c.classList.remove('on'));
+  const LABELS = [['#field', 'post'], ['.cert-card, .gallery figure', 'view'], ['.deck-track', 'swipe'], ['.mon', 'tune in'], ['a', 'open'], ['button', 'click']];
+  addEventListener('pointerover', e => {
+    if (e.target.closest('input, textarea')) { c.classList.remove('on'); return; }
+    c.classList.add('on');
+    const hit = LABELS.find(([sel]) => e.target.closest(sel));
+    c.classList.toggle('big', !!hit && hit[0] !== '#field');
+    label.textContent = hit ? hit[1] : '';
+  });
+  (function loop() { cx += (x - cx) * .22; cy += (y - cy) * .22; c.style.transform = `translate(${cx}px, ${cy}px)`; requestAnimationFrame(loop); })();
 })();
 
 /* =========================================================
@@ -240,304 +522,3 @@ document.querySelectorAll('.case').forEach(cs => {
   card.addEventListener('pointerleave', () => { card.style.setProperty('--rx', '0deg'); card.style.setProperty('--ry', '0deg'); });
 })();
 
-/* =====================================================================
-   v7 — interactive layer
-   ===================================================================== */
-const REDUCE = matchMedia('(prefers-reduced-motion: reduce)').matches;
-const HAS_GSAP = !!(window.gsap && window.ScrollTrigger);
-if (HAS_GSAP) gsap.registerPlugin(ScrollTrigger);
-
-/* ---------- custom cursor ---------- */
-(() => {
-  if (!matchMedia('(hover: hover) and (pointer: fine)').matches) return;
-  const c = document.querySelector('.cursor'), label = c.querySelector('.cursor-label');
-  document.body.classList.add('has-cursor');
-  let x = innerWidth / 2, y = innerHeight / 2, cx = x, cy = y;
-  addEventListener('pointermove', e => { x = e.clientX; y = e.clientY; c.classList.add('on'); });
-  document.addEventListener('pointerleave', () => c.classList.remove('on'));
-  const LABELS = [['.cert-card, .gallery figure', 'view'], ['.deck-track', 'swipe'], ['a', 'open'], ['button', 'click']];
-  addEventListener('pointerover', e => {
-    if (e.target.closest('input, textarea')) { c.classList.remove('on'); return; }
-    c.classList.add('on');
-    const hit = LABELS.find(([sel]) => e.target.closest(sel));
-    c.classList.toggle('big', !!hit);
-    label.textContent = hit ? hit[1] : '';
-  });
-  (function loop() {
-    cx += (x - cx) * 0.22; cy += (y - cy) * 0.22;
-    c.style.transform = `translate(${cx}px, ${cy}px)`;
-    requestAnimationFrame(loop);
-  })();
-})();
-
-/* ---------- scroll progress drawn as a signal line ---------- */
-(() => {
-  const svg = document.querySelector('.progress');
-  if (!svg) return;
-  let d = 'M0 12';
-  for (let i = 1; i <= 200; i++) {
-    const x = i * 5, spike = Math.random() < 0.06 ? (Math.random() * 9 + 2) : 0;
-    const y = 12 + Math.sin(i * 0.55) * 2.2 + (Math.random() - .5) * 2 - spike * (Math.random() < .5 ? 1 : -1);
-    d += ` L${x} ${y.toFixed(1)}`;
-  }
-  const track = svg.querySelector('.progress-track'), line = svg.querySelector('.progress-line');
-  track.setAttribute('d', d); line.setAttribute('d', d);
-  const len = line.getTotalLength();
-  line.style.strokeDasharray = len; line.style.strokeDashoffset = len;
-  const upd = () => {
-    const max = document.documentElement.scrollHeight - innerHeight;
-    line.style.strokeDashoffset = len * (1 - (max > 0 ? scrollY / max : 0));
-  };
-  addEventListener('scroll', upd, { passive: true }); addEventListener('resize', upd); upd();
-})();
-
-/* ---------- manifesto: words light up as you scroll ---------- */
-(() => {
-  const p = document.querySelector('[data-split]');
-  if (!p) return;
-  const HL = ['signal', 'noise,', 'briefing'];
-  const words = p.textContent.trim().split(/\s+/);
-  p.innerHTML = words.map(w => `<span class="w${HL.includes(w) ? ' hl' : ''}">${w}</span>`).join(' ');
-  const spans = [...p.querySelectorAll('.w')];
-  const light = prog => { const n = Math.round(prog * spans.length); spans.forEach((s, i) => s.classList.toggle('lit', i < n)); };
-  if (REDUCE) { light(1); return; }
-  if (HAS_GSAP) {
-    ScrollTrigger.create({ trigger: '#manifesto', start: 'top top', end: '+=120%', pin: true, scrub: true, onUpdate: st => light(st.progress * 1.08) });
-  } else {
-    new IntersectionObserver(([e]) => e.isIntersecting && light(1), { threshold: .4 }).observe(p);
-  }
-})();
-
-/* ---------- sentiment analyzer (keyword model, EN + AR) ---------- */
-(() => {
-  const input = document.getElementById('sentiInput');
-  if (!input) return;
-  const LEX = {
-    good: 1, great: 1.5, love: 1.5, excellent: 2, amazing: 2, fast: 1, quick: 1, thanks: 1.2, thank: 1.2, happy: 1.3,
-    resolved: 1, fixed: 1, restored: 1.2, back: .5, helpful: 1.2, best: 1.5, awesome: 1.8, perfect: 1.8, appreciate: 1.3,
-    smooth: 1, recommend: 1.2, nice: 1, wonderful: 1.8, pleased: 1.2, satisfied: 1.2, professional: 1, clear: .6,
-    bad: -1.2, slow: -1, outage: -1.6, blackout: -1.8, down: -.6, angry: -1.6, terrible: -2, awful: -2, worst: -2,
-    delay: -1, delayed: -1, problem: -.8, issue: -.5, issues: -.6, broken: -1.3, fail: -1.3, failed: -1.4, failure: -1.4,
-    poor: -1.2, hate: -1.8, disappointed: -1.5, complaint: -1, unacceptable: -2, crisis: -1.2, expensive: -.8, rude: -1.5,
-    ignored: -1.4, waiting: -.6, nobody: -.8, never: -.4,
-    'شكرا': 1.2, 'شكراً': 1.2, 'ممتاز': 2, 'ممتازة': 2, 'رائع': 1.8, 'رائعة': 1.8, 'سريع': 1, 'سريعة': 1, 'جميل': 1.2,
-    'احب': 1.4, 'أحب': 1.4, 'سعيد': 1.3, 'حل': .8, 'الحل': .8, 'عادت': 1, 'رجعت': 1, 'افضل': 1.3, 'أفضل': 1.3,
-    'مميز': 1.4, 'جيد': 1, 'جيدة': 1, 'شاكر': 1.2, 'تحسن': 1,
-    'انقطاع': -1.6, 'انقطع': -1.6, 'سيء': -1.4, 'سيئ': -1.4, 'سيئة': -1.4, 'بطيء': -1, 'بطء': -1, 'مشكلة': -.9,
-    'مشاكل': -1, 'تأخير': -1, 'تأخر': -1, 'غاضب': -1.6, 'أسوأ': -2, 'اسوأ': -2, 'ضعيف': -1.2, 'عطل': -1.2,
-    'معطل': -1.2, 'فاشل': -1.6, 'مستمر': -.5, 'زعلان': -1.3, 'غالي': -.8
-  };
-  const NEG = new Set(['not', 'no', "don't", "didn't", "isn't", "wasn't", "can't", "won't", 'without', 'لا', 'لم', 'ليس', 'ما', 'غير', 'بدون']);
-  const BUT = new Set(['but', 'however', 'although', 'لكن', 'ولكن', 'بس']);
-  const norm = w => {
-    let t = w.toLowerCase().replace(/[ً-ْ]/g, '');
-    if (LEX[t] !== undefined) return t;
-    if (/^و/.test(t) && LEX[t.slice(1)] !== undefined) return t.slice(1);
-    if (/^ال/.test(t) && LEX[t.slice(2)] !== undefined) return t.slice(2);
-    if (/^وال/.test(t) && LEX[t.slice(3)] !== undefined) return t.slice(3);
-    return t;
-  };
-  const needle = document.querySelector('.needle'), label = document.getElementById('sentiLabel'),
-        score = document.getElementById('sentiScore'), verdict = document.querySelector('.verdict'), out = document.getElementById('sentiTokens');
-  const esc = t => t.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-  function run() {
-    const parts = input.value.match(/[\p{L}\p{N}'’]+|[^\p{L}\p{N}'’]+/gu) || [];
-    let sum = 0, negLeft = 0, boost = 1, html = '';
-    for (const part of parts) {
-      if (!/[\p{L}\p{N}]/u.test(part)) { html += esc(part); continue; }
-      const w = norm(part.replace('’', "'"));
-      if (BUT.has(w)) { boost = 1.5; html += esc(part); continue; }
-      if (NEG.has(w)) { negLeft = 3; html += `<span class="tx">${esc(part)}</span>`; continue; }
-      let v = LEX[w];
-      if (v !== undefined) {
-        if (negLeft > 0) { v = -v * .8; negLeft = 0; }
-        v *= boost; sum += v;
-        html += `<span class="${v > 0 ? 'tp' : 'tn'}">${esc(part)}</span>`;
-      } else { html += esc(part); }
-      if (negLeft > 0) negLeft--;
-    }
-    const sc = sum / (Math.abs(sum) + 2);
-    const kind = sc > .2 ? 'pos' : sc < -.2 ? 'neg' : 'neu';
-    label.textContent = { pos: 'Positive', neg: 'Negative', neu: 'Neutral / mixed' }[kind];
-    score.textContent = 'score ' + (sc >= 0 ? '+' : '') + sc.toFixed(2);
-    verdict.className = 'verdict ' + kind;
-    needle.style.transform = `rotate(${sc * 85}deg)`;
-    out.innerHTML = html || '<span class="dim">Type something to see which words drive the score.</span>';
-  }
-  input.addEventListener('input', run);
-  document.querySelectorAll('[data-ex]').forEach(b => b.addEventListener('click', () => { input.value = b.dataset.ex; run(); input.focus(); }));
-  run();
-})();
-
-/* ---------- crisis simulator ---------- */
-(() => {
-  const cv = document.getElementById('mentions');
-  if (!cv) return;
-  const ctx = cv.getContext('2d');
-  const btn = document.getElementById('crisisBtn');
-  const steps = [...document.querySelectorAll('#escalation li')];
-  const negPct = document.getElementById('negPct');
-  const mix = { neg: document.querySelector('.mix-neg'), neu: document.querySelector('.mix-neu'), pos: document.querySelector('.mix-pos') };
-  const N = 90, data = Array.from({ length: N }, () => 38 + Math.random() * 10);
-  let crisisT = -1, W = 0, H = 190, running = false, timer;
-
-  function size() { const dpr = Math.min(devicePixelRatio || 1, 2); W = cv.clientWidth; cv.width = W * dpr; cv.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0); }
-  function envelope(t) { if (t < 0) return 0; if (t < 3) return t / 3; if (t < 6) return 1; if (t < 12) return 1 - (t - 6) / 6; return 0; }
-  function setMix(neg) {
-    const pos = Math.max(6, 40 - (neg - 18) * .8), neu = 100 - neg - pos;
-    mix.neg.style.width = neg + '%'; mix.neu.style.width = neu + '%'; mix.pos.style.width = pos + '%';
-    negPct.textContent = Math.round(neg) + '%';
-  }
-  function tick() {
-    const t = crisisT >= 0 ? (performance.now() - crisisT) / 1000 : -1;
-    const e = envelope(t);
-    data.shift(); data.push(38 + Math.random() * 10 + e * (180 + Math.random() * 40));
-    setMix(18 + e * 44 + Math.random() * 2);
-    if (t > 12.5) finish();
-    draw(e);
-  }
-  function draw(e) {
-    ctx.clearRect(0, 0, W, H);
-    const max = 260, step = W / (N - 1);
-    const col = e > .15 ? '#F59FAE' : '#6FE3C1';
-    ctx.beginPath();
-    data.forEach((v, i) => { const x = i * step, y = H - 10 - (v / max) * (H - 24); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); });
-    ctx.strokeStyle = col; ctx.lineWidth = 2; ctx.stroke();
-    ctx.lineTo(W, H); ctx.lineTo(0, H); ctx.closePath();
-    const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, col + '55'); g.addColorStop(1, col + '00');
-    ctx.fillStyle = g; ctx.fill();
-    const last = data[N - 1], y = H - 10 - (last / max) * (H - 24);
-    ctx.fillStyle = col; ctx.beginPath(); ctx.arc(W - 3, y, 4, 0, 7); ctx.fill();
-    ctx.font = '500 12px "IBM Plex Mono", monospace'; ctx.textAlign = 'right';
-    ctx.fillText(Math.round(last) + ' / min', W - 12, Math.max(16, y - 10));
-  }
-  function setStep(i, cls, text) { steps[i].className = cls; if (text) steps[i].querySelector('span').textContent = text; }
-  function finish() {
-    crisisT = -1; document.body.classList.remove('crisis');
-    btn.disabled = false; btn.textContent = 'Run it again';
-    steps.forEach(s => s.classList.replace('on', 'done'));
-  }
-  btn.addEventListener('click', () => {
-    crisisT = performance.now(); document.body.classList.add('crisis');
-    btn.disabled = true; btn.textContent = 'Crisis in progress…';
-    steps.forEach(s => s.className = '');
-    const base = data.slice(-10).reduce((a, b) => a + b, 0) / 10;
-    const at = (ms, fn) => setTimeout(fn, REDUCE ? ms / 3 : ms);
-    at(1300, () => { const now = data.slice(-3).reduce((a, b) => a + b, 0) / 3; setStep(0, 'on', `Mentions up ${Math.round((now / base - 1) * 100)}% in minutes`); });
-    at(2800, () => { setStep(0, 'done'); setStep(1, 'on', `Negative share at ${negPct.textContent}, risk rated high`); });
-    at(4300, () => { setStep(1, 'done'); setStep(2, 'on', 'Response team alerted with sample posts'); });
-    at(5800, () => {
-      setStep(2, 'done');
-      const t = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      setStep(3, 'on', `Briefing sent to leadership at ${t}`);
-    });
-  });
-  const play = () => { if (!running) { running = true; timer = setInterval(tick, 280); } };
-  const stop = () => { running = false; clearInterval(timer); };
-  size(); draw(0);
-  addEventListener('resize', () => { size(); draw(0); });
-  new IntersectionObserver(([e]) => e.isIntersecting ? play() : stop()).observe(cv);
-})();
-
-/* ---------- expertise: horizontal track pinned to vertical scroll ---------- */
-(() => {
-  if (!HAS_GSAP || REDUCE) return;
-  ScrollTrigger.matchMedia({
-    '(min-width: 901px)': () => {
-      const track = document.querySelector('.hz-track');
-      const dist = () => Math.max(0, track.scrollWidth - innerWidth);
-      const tw = gsap.to(track, {
-        x: () => -dist(), ease: 'none',
-        scrollTrigger: { trigger: '.hz-pin', start: 'top top', end: () => '+=' + dist(), pin: true, scrub: 0.8, invalidateOnRefresh: true }
-      });
-      gsap.utils.toArray('.hz-glyph').forEach(g => gsap.fromTo(g, { y: 60, rotate: 10 }, {
-        y: -40, rotate: -8, ease: 'none',
-        scrollTrigger: { trigger: '.hz-pin', start: 'top top', end: () => '+=' + dist(), scrub: true, containerAnimation: undefined }
-      }));
-      return () => tw.kill();
-    }
-  });
-  addEventListener('load', () => ScrollTrigger.refresh());
-})();
-
-/* ---------- interactive terminal ---------- */
-(() => {
-  const out = document.getElementById('termOut'), form = document.getElementById('termForm'), input = document.getElementById('termInput');
-  if (!out) return;
-  const LI = 'https://www.linkedin.com/in/ahmed-elabgari-%D8%A3%D8%AD%D9%85%D8%AF-%D8%A7%D9%84%D8%B9%D8%A8%D9%82%D8%B1%D9%8A-8b4448244/';
-  const MAIL = 'ahmadalabqari@hotmail.com';
-  const VERIFY = 'https://www.coursera.org/account/accomplishments/professional-cert/certificate/URWV5QBFTB5R';
-  const hist = []; let hi = 0;
-  const print = (html, cls = '') => { const d = document.createElement('div'); if (cls) d.className = cls; d.innerHTML = html; out.appendChild(d); out.scrollTop = out.scrollHeight; };
-  const CMDS = {
-    help: () => print(`Available commands:
-  <span class="ok">about</span>        who I am
-  <span class="ok">skills</span>       what I work with
-  <span class="ok">projects</span>     jump to my projects
-  <span class="ok">certificate</span>  my Google Data Analytics certificate
-  <span class="ok">email</span>        write me an email
-  <span class="ok">linkedin</span>     open my LinkedIn profile
-  <span class="ok">ls</span>           list files
-  <span class="ok">clear</span>        clear the screen
-<span class="dim">There is also one hidden command. Hint: it starts with sudo.</span>`),
-    about: () => print(`Ahmed Elabgari  <span lang="ar">أحمد العبقري</span>
-Media monitoring &amp; reporting lead
-Assistant Manager and Technical Project Manager, 4+ years in media monitoring, crisis reporting and data analytics.
-Works in Arabic and English.`),
-    whoami: () => CMDS.about(),
-    skills: () => print(`Python  R (ggplot2)  SQL  Excel  PowerPoint  Tableau
-AI agents  Model Context Protocol (MCP)  API integration
-Sentiment analysis  share of voice  KPI reporting  dashboards`),
-    projects: () => { print('Scrolling to projects…', 'dim'); document.getElementById('work').scrollIntoView({ behavior: REDUCE ? 'auto' : 'smooth' }); },
-    certificate: () => print(`Google Data Analytics Professional Certificate
-Issued by Google through Coursera, Nov 7, 2025
-<span class="ok">✓ verified</span>  <a href="${VERIFY}" target="_blank" rel="noopener">open verification page</a>`),
-    cert: () => CMDS.certificate(),
-    email: () => { print(`Opening a new email to <a href="mailto:${MAIL}">${MAIL}</a>`); location.href = 'mailto:' + MAIL; },
-    mail: () => CMDS.email(),
-    linkedin: () => {
-      print(`<span class="ok">200 OK</span>
-{
-  "name": "Ahmed Elabgari",
-  "name_ar": "<span lang="ar">أحمد العبقري</span>",
-  "headline": "Media Monitoring &amp; Reporting Lead",
-  "profile": "<a href="${LI}" target="_blank" rel="noopener">linkedin.com/in/ahmed-elabgari</a>"
-}`);
-      window.open(LI, '_blank', 'noopener');
-    },
-    ls: () => print('about.txt   skills.sql   projects.R   certificate.pdf   contact.sh'),
-    clear: () => { out.innerHTML = ''; },
-    date: () => print(new Date().toString()),
-    hire: () => CMDS['sudo hire ahmed'](),
-    'sudo hire ahmed': () => {
-      print(`<span class="warn">[sudo] password for recruiter: ********</span>
-<span class="ok">Permission granted.</span> Opening an email draft…`);
-      setTimeout(() => location.href = `mailto:${MAIL}?subject=${encodeURIComponent("Let's work together")}`, 900);
-    },
-    'مرحبا': () => print('<span lang="ar">أهلاً وسهلاً! اكتب help لعرض الأوامر.</span>'),
-    'السلام عليكم': () => print('<span lang="ar">وعليكم السلام! اكتب help لعرض الأوامر.</span>')
-  };
-  function exec(raw) {
-    const cmd = raw.trim(); if (!cmd) return;
-    print(cmd.replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c])), 'cmd');
-    hist.push(cmd); hi = hist.length;
-    const key = cmd.toLowerCase().replace(/\s+/g, ' ');
-    const fn = CMDS[key] || CMDS[key.split(' ')[0]] && !key.startsWith('sudo') && CMDS[key.split(' ')[0]];
-    if (fn) fn();
-    else if (key.startsWith('sudo')) print('Nice try. The only sudo command here is: sudo hire ahmed', 'warn');
-    else print(`command not found: ${cmd.replace(/[&<>]/g, '')}. Type <span class="ok">help</span>.`, 'dim');
-  }
-  form.addEventListener('submit', e => { e.preventDefault(); exec(input.value); input.value = ''; });
-  input.addEventListener('keydown', e => {
-    if (e.key === 'ArrowUp' && hi > 0) { input.value = hist[--hi]; e.preventDefault(); }
-    if (e.key === 'ArrowDown') { hi = Math.min(hist.length, hi + 1); input.value = hist[hi] || ''; e.preventDefault(); }
-  });
-  document.querySelectorAll('[data-cmd]').forEach(b => b.addEventListener('click', () => exec(b.dataset.cmd)));
-  // boot message, typed once when the terminal scrolls into view
-  let booted = false;
-  new IntersectionObserver(([e]) => {
-    if (!e.isIntersecting || booted) return; booted = true;
-    const lines = ['Connected to ahmed@portfolio', 'Type <span class="ok">help</span> to see what you can do.'];
-    lines.forEach((l, i) => setTimeout(() => print(l, i ? '' : 'dim'), REDUCE ? 0 : 350 * (i + 1)));
-  }, { threshold: .3 }).observe(out);
-})();
