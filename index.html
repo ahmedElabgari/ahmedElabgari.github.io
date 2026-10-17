@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=5">
+  <link rel="stylesheet" href="style.css?v=6">
 </head>
 <body>
 
@@ -20,6 +20,7 @@
       <a href="#certificate">Certificate</a>
       <a href="#work">Projects</a>
       <a href="#contact">Contact</a>
+      <a class="nav-li" href="https://www.linkedin.com/in/ahmed-elabgari-%D8%A3%D8%AD%D9%85%D8%AF-%D8%A7%D9%84%D8%B9%D8%A8%D9%82%D8%B1%D9%8A-8b4448244/" target="_blank" rel="noopener" aria-label="LinkedIn profile">in</a>
     </div>
   </nav>
 
@@ -272,16 +273,30 @@
     <section id="contact" class="sec contact">
       <h2 class="contact-title">Let's work together</h2>
       <p class="prose">Open to media monitoring, reporting and analytics opportunities.</p>
-      <a class="terminal" href="mailto:ahmadalabqari@hotmail.com">
-        <span class="t-bar"><i></i><i></i><i></i></span>
-        <span class="t-line"><span class="t-prompt">$</span> mail --to <span class="t-mail">ahmadalabqari@hotmail.com</span><span class="caret" aria-hidden="true"></span></span>
-        <span class="t-hint">Press to send an email</span>
-      </a>
+      <div class="terminals">
+        <a class="terminal" href="mailto:ahmadalabqari@hotmail.com">
+          <span class="t-bar"><i></i><i></i><i></i><b>email</b></span>
+          <span class="t-line"><span class="t-prompt">$</span> mail --to <span class="t-mail">ahmadalabqari@hotmail.com</span><span class="caret" aria-hidden="true"></span></span>
+          <span class="t-hint">Press to send an email</span>
+        </a>
+        <a class="terminal li" href="https://www.linkedin.com/in/ahmed-elabgari-%D8%A3%D8%AD%D9%85%D8%AF-%D8%A7%D9%84%D8%B9%D8%A8%D9%82%D8%B1%D9%8A-8b4448244/" target="_blank" rel="noopener" aria-label="Connect with Ahmed Elabgari on LinkedIn">
+          <span class="t-bar"><i></i><i></i><i></i><b>linkedin</b></span>
+          <span class="t-line"><span class="t-prompt">$</span> curl <span class="t-mail">linkedin.com/in/ahmed-elabgari</span></span>
+          <span class="t-status"><span class="ok">200 OK</span></span>
+<pre class="t-json" aria-hidden="true">{
+  <span class="a">"name"</span>:     <span class="s">"Ahmed Elabgari"</span>,
+  <span class="a">"name_ar"</span>:  <span class="s">"<bdi lang="ar">أحمد العبقري</bdi>"</span>,
+  <span class="a">"headline"</span>: <span class="s">"Media Monitoring &amp; Reporting Lead"</span>,
+  <span class="a">"action"</span>:   <span class="k">connect()</span>
+}</pre>
+          <span class="t-hint">Press to open my LinkedIn profile</span>
+        </a>
+      </div>
     </section>
   </main>
 
   <footer class="foot">
-    <span>© 2026 Ahmed Elabgari</span>
+    <span>© 2026 Ahmed Elabgari · <a href="https://www.linkedin.com/in/ahmed-elabgari-%D8%A3%D8%AD%D9%85%D8%AF-%D8%A7%D9%84%D8%B9%D8%A8%D9%82%D8%B1%D9%8A-8b4448244/" target="_blank" rel="noopener">LinkedIn</a></span>
     <span lang="ar" dir="rtl">أحمد العبقري</span>
   </footer>
 

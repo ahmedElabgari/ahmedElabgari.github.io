@@ -233,3 +233,19 @@ a { color: inherit; }
   .diagram .link, .caret { animation: none; }
   .diagram .pulse { display: none; }
 }
+
+/* ---------- LinkedIn ---------- */
+.terminals { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; max-width: 1040px; margin-top: 40px; align-items: start; }
+.terminals .terminal { margin-top: 0; max-width: none; }
+.t-bar b { margin-left: auto; font: 400 .75rem var(--mono); color: var(--muted); }
+.t-status { display: block; padding: 4px 20px 0; font: 400 .85rem var(--mono); }
+.t-status .ok { color: var(--mint); }
+.t-json { margin: 8px 20px 14px; font: 400 clamp(.78rem, 1.6vw, .92rem)/1.7 var(--mono); color: var(--text); white-space: pre-wrap; overflow-wrap: anywhere; }
+.t-json [lang="ar"] { font-family: var(--arabic); unicode-bidi: isolate; }
+.terminal.li:hover .k { text-decoration: underline; }
+.nav-li { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 5px; border: 1px solid var(--line);
+  font: 700 .85rem var(--display) !important; color: var(--text) !important; }
+.nav-li:hover { border-color: var(--mint); color: var(--mint) !important; }
+.foot a { color: var(--muted); }
+.foot a:hover { color: var(--mint); }
+@media (max-width: 900px) { .terminals { grid-template-columns: 1fr; } }
