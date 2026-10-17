@@ -1,93 +1,109 @@
 /* =========================================================
-   HERO: generative "flow field" made with p5.js
-   Thousands of particles follow invisible currents (Perlin
-   noise) and get pushed away by your mouse.
-   Try changing the values below to change the look.
+   HERO: "signal from noise"
+   Thousands of glyphs (Latin, Arabic, digits, @ and #) drift
+   like raw media chatter, then lock into Ahmed's name.
+   The cursor scatters them back into noise.
    ========================================================= */
+(() => {
+  const cv = document.getElementById('signal');
+  if (!cv) return;
+  const ctx = cv.getContext('2d');
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const GLYPHS = '01#@%&+*=<>/ابتجحدرسصطعفقكلمنهوي'.split('');
+  const C = { noise: 'rgba(91,140,196,.42)', signal: '#EAF0F7', hot: '#F59FAE', mint: '#6FE3C1' };
+  let W, H, dpr, pts = [], glyph = 8, start = performance.now();
+  const mouse = { x: -9999, y: -9999 };
 
-const NUM_PARTICLES = 900;    // more = denser
-const NOISE_SCALE   = 0.0025; // smaller = smoother, bigger currents
-const MOUSE_RADIUS  = 140;    // how far the mouse pushes particles
-const TRAIL_FADE    = 18;     // lower = longer trails (0–255)
-
-let particles = [];
-
-function setup() {
-  const hero = document.getElementById('hero');
-  const canvas = createCanvas(hero.offsetWidth, hero.offsetHeight);
-  canvas.parent('hero-canvas');
-  for (let i = 0; i < NUM_PARTICLES; i++) particles.push(new Particle());
-  background(10, 12, 20);
-}
-
-function draw() {
-  noStroke();
-  fill(10, 12, 20, TRAIL_FADE);
-  rect(0, 0, width, height);
-  for (const p of particles) {
-    p.update();
-    p.show();
-  }
-}
-
-function windowResized() {
-  const hero = document.getElementById('hero');
-  resizeCanvas(hero.offsetWidth, hero.offsetHeight);
-  background(10, 12, 20);
-}
-
-class Particle {
-  constructor() { this.reset(); }
-
-  reset() {
-    this.pos = createVector(random(width), random(height));
-    this.prev = this.pos.copy();
-    this.speed = random(0.6, 1.8);
-    // 80% teal, 20% amber
-    this.col = random() < 0.8 ? color(0, 200, 180, 90) : color(255, 170, 60, 110);
+  function targets() {
+    const off = document.createElement('canvas');
+    off.width = W; off.height = H;
+    const o = off.getContext('2d');
+    const twoLines = W < 820;
+    const lines = twoLines ? ['AHMED', 'ELABGARI'] : ['AHMED ELABGARI'];
+    let size = twoLines ? W * 0.2 : W * 0.105;
+    size = Math.min(size, H * (twoLines ? 0.17 : 0.24));
+    const setFont = () => o.font = `800 ${size}px "Bricolage Grotesque", "IBM Plex Sans", sans-serif`;
+    setFont();
+    const widest = Math.max(...lines.map(l => o.measureText(l).width));
+    const maxW = W * (twoLines ? 0.88 : 0.86);
+    if (widest > maxW) { size *= maxW / widest; setFont(); }
+    o.textAlign = 'center'; o.textBaseline = 'middle'; o.fillStyle = '#fff';
+    const cy = H * (twoLines ? 0.34 : 0.42);
+    lines.forEach((l, i) => o.fillText(l, W / 2, cy + (i - (lines.length - 1) / 2) * size * 0.98));
+    const step = Math.max(4, Math.round(size / 24));
+    glyph = step * 1.55;
+    const data = o.getImageData(0, 0, W, H).data, out = [];
+    for (let y = 0; y < H; y += step)
+      for (let x = 0; x < W; x += step)
+        if (data[(y * W + x) * 4 + 3] > 140) out.push([x, y]);
+    return out;
   }
 
-  update() {
-    this.prev.set(this.pos);
-    const angle = noise(this.pos.x * NOISE_SCALE, this.pos.y * NOISE_SCALE, frameCount * 0.002) * TWO_PI * 2;
-    const vel = p5.Vector.fromAngle(angle).mult(this.speed);
+  function build() {
+    dpr = Math.min(devicePixelRatio || 1, 2);
+    W = cv.clientWidth; H = cv.clientHeight;
+    cv.width = W * dpr; cv.height = H * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const t = targets();
+    const extra = Math.min(1400, Math.round(W * H / 1800));
+    pts = [];
+    const mk = (tx, ty) => ({
+      x: Math.random() * W, y: Math.random() * H, vx: 0, vy: 0, tx, ty,
+      ch: GLYPHS[(Math.random() * GLYPHS.length) | 0], heat: 0, delay: Math.random() * 900
+    });
+    t.forEach(([x, y]) => pts.push(mk(x, y)));
+    for (let i = 0; i < extra; i++) pts.push(mk(null, null));
+    if (reduce) pts.forEach(p => { if (p.tx !== null) { p.x = p.tx; p.y = p.ty; } });
+    start = performance.now();
+  }
 
-    const d = dist(mouseX, mouseY, this.pos.x, this.pos.y);
-    if (d < MOUSE_RADIUS) {
-      const push = createVector(this.pos.x - mouseX, this.pos.y - mouseY).setMag((MOUSE_RADIUS - d) * 0.03);
-      vel.add(push);
+  function frame(now) {
+    const el = now - start;
+    ctx.clearRect(0, 0, W, H);
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    const R = Math.min(150, W * 0.14), R2 = R * R;
+    const noise = [], sig = [], hot = [];
+    for (const p of pts) {
+      const dx = p.x - mouse.x, dy = p.y - mouse.y, d2 = dx * dx + dy * dy;
+      if (d2 < R2) {
+        const d = Math.sqrt(d2) || 1, f = (1 - d / R) * 2.6;
+        p.vx += dx / d * f; p.vy += dy / d * f; p.heat = 1;
+      }
+      if (p.tx !== null && el > 400 + p.delay) {
+        p.vx += (p.tx - p.x) * 0.012; p.vy += (p.ty - p.y) * 0.012;
+        p.vx *= 0.86; p.vy *= 0.86;
+      } else {
+        const a = Math.sin(p.x * 0.004 + now * 0.0003) * Math.cos(p.y * 0.005 - now * 0.0002) * Math.PI * 2;
+        p.vx += Math.cos(a) * 0.05; p.vy += Math.sin(a) * 0.05;
+        p.vx *= 0.96; p.vy *= 0.96;
+        if (p.x < -20) p.x = W + 20; if (p.x > W + 20) p.x = -20;
+        if (p.y < -20) p.y = H + 20; if (p.y > H + 20) p.y = -20;
+      }
+      p.x += p.vx; p.y += p.vy;
+      p.heat *= 0.965;
+      if (Math.random() < 0.002) p.ch = GLYPHS[(Math.random() * GLYPHS.length) | 0];
+      (p.heat > 0.15 ? hot : p.tx !== null ? sig : noise).push(p);
     }
-
-    this.pos.add(vel);
-    if (this.pos.x < 0 || this.pos.x > width || this.pos.y < 0 || this.pos.y > height) this.reset();
+    ctx.font = `500 ${glyph * 0.8}px "IBM Plex Mono", monospace`;
+    ctx.fillStyle = C.noise; noise.forEach(p => ctx.fillText(p.ch, p.x, p.y));
+    ctx.font = `600 ${glyph}px "IBM Plex Mono", monospace`;
+    ctx.fillStyle = C.signal; sig.forEach(p => ctx.fillText(p.ch, p.x, p.y));
+    ctx.fillStyle = C.hot; hot.forEach(p => ctx.fillText(p.ch, p.x, p.y));
+    if (running) raf = requestAnimationFrame(frame);
   }
 
-  show() {
-    stroke(this.col);
-    strokeWeight(1.2);
-    line(this.prev.x, this.prev.y, this.pos.x, this.pos.y);
-  }
-}
+  let raf, running = false;
+  const play = () => { if (!running) { running = true; raf = requestAnimationFrame(frame); } };
+  const stop = () => { running = false; cancelAnimationFrame(raf); };
 
-/* =========================================================
-   SCROLL ANIMATIONS with GSAP
-   Anything with class="reveal" fades up as you scroll to it.
-   ========================================================= */
+  cv.addEventListener('pointermove', e => { const r = cv.getBoundingClientRect(); mouse.x = e.clientX - r.left; mouse.y = e.clientY - r.top; });
+  cv.addEventListener('pointerleave', () => { mouse.x = mouse.y = -9999; });
+  let rt; addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(build, 200); });
+  new IntersectionObserver(([e]) => e.isIntersecting ? play() : stop()).observe(cv);
 
-if (window.gsap) {
-gsap.registerPlugin(ScrollTrigger);
-
-gsap.from('.hero-content > *', {
-  y: 30, opacity: 0, duration: 1, stagger: 0.15, ease: 'power3.out', delay: 0.3
-});
-
-gsap.utils.toArray('.reveal').forEach(el => {
-  gsap.from(el, {
-    y: 40, opacity: 0, duration: 0.9, ease: 'power3.out',
-    scrollTrigger: { trigger: el, start: 'top 85%' }
-  });
-});
-}
+  (document.fonts ? document.fonts.load('800 80px "Bricolage Grotesque"') : Promise.resolve())
+    .catch(() => {}).then(() => { build(); play(); });
+})();
 
 /* =========================================================
    PROJECT TABS
@@ -95,9 +111,8 @@ gsap.utils.toArray('.reveal').forEach(el => {
 document.querySelectorAll('.case').forEach(cs => {
   cs.querySelectorAll('.tab').forEach(tab => {
     tab.addEventListener('click', () => {
-      cs.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t === tab));
+      cs.querySelectorAll('.tab').forEach(t => { t.classList.toggle('active', t === tab); t.setAttribute('aria-selected', t === tab); });
       cs.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.dataset.panel === tab.dataset.tab));
-      window.ScrollTrigger && ScrollTrigger.refresh();
     });
   });
 });

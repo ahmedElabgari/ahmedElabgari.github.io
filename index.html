@@ -4,172 +4,187 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Ahmed Elabgari — Media Monitoring & Reporting Lead</title>
-  <meta name="description" content="Ahmed Elabgari — Media Monitoring & Reporting Lead specializing in crisis & reputation management and data analytics.">
+  <meta name="description" content="Ahmed Elabgari: media monitoring and reporting lead specializing in crisis and reputation management and data analytics.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=3">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=4">
 </head>
 <body>
 
-  <nav class="nav">
-    <a href="#" class="logo">AE</a>
+  <nav class="nav" aria-label="Main">
+    <a href="#top" class="brand">Ahmed Elabgari</a>
     <div class="links">
       <a href="#about">About</a>
-      <a href="#skills">Expertise</a>
+      <a href="#expertise">Expertise</a>
       <a href="#work">Projects</a>
       <a href="#contact">Contact</a>
     </div>
   </nav>
 
-  <!-- HERO: the p5.js canvas is drawn inside #hero-canvas -->
-  <header id="hero">
-    <div id="hero-canvas"></div>
-    <div class="hero-content">
-      <p class="eyebrow">Media Monitoring &amp; Reporting Lead</p>
-      <h1>Ahmed Elabgari</h1>
-      <p class="tagline">Crisis &amp; Reputation Management · Data Analytics</p>
-      <a href="#work" class="btn">View my work</a>
+  <!-- ============ HERO: noise resolves into signal ============ -->
+  <header id="top" class="hero">
+    <canvas id="signal" aria-hidden="true"></canvas>
+    <h1 class="sr-only">Ahmed Elabgari</h1>
+    <div class="hero-foot">
+      <div class="hero-id">
+        <p class="hero-ar" lang="ar" dir="rtl">أحمد العبقري</p>
+        <p class="hero-role">Media monitoring &amp; reporting lead</p>
+        <p class="hero-sub">Crisis &amp; reputation management, data analytics</p>
+      </div>
+      <div class="hero-channels" aria-label="Channels I monitor">
+        <span class="ch-title">Channels I monitor</span>
+        <ul>
+          <li>X / Twitter</li><li>Instagram</li><li>Facebook</li><li>TikTok</li><li>YouTube</li>
+          <li>Online news</li><li>TV</li><li>Radio</li><li>Print</li>
+        </ul>
+      </div>
     </div>
-    <span class="hint">Move your mouse through the field</span>
+    <p class="hero-hint">Move your cursor to stir the noise</p>
   </header>
 
   <main>
-    <!-- ABOUT -->
-    <section id="about" class="section">
+    <!-- ============ ABOUT (Python) ============ -->
+    <section id="about" class="sec">
+      <h2 class="code-head" aria-label="About">
+        <span class="k">class</span> <span class="n">Ahmed</span>(<span class="n2">Analyst</span>):
+      </h2>
       <div class="about">
-        <div class="photo-wrap reveal">
-          <img src="ahmed.jpg" alt="Portrait of Ahmed Elabgari" class="photo" width="720" height="720">
-        </div>
-        <div class="about-text">
-          <h2 class="reveal">About</h2>
-          <p class="reveal lead">
-            Assistant Manager and Technical Project Manager with 4+ years of experience in
-            media monitoring, crisis reporting, and data analytics.
+        <figure class="portrait">
+          <img src="ahmed.jpg" alt="Portrait of Ahmed Elabgari" width="720" height="720">
+        </figure>
+        <div class="about-right">
+          <pre class="code" aria-label="Profile summary"><code><span class="a">role</span>       = <span class="s">"Assistant Manager &amp; Technical Project Manager"</span>
+<span class="a">experience</span> = <span class="s">"4+ years"</span>
+<span class="a">languages</span>  = [<span class="s">"Arabic"</span>, <span class="s">"English"</span>]
+<span class="a">focus</span>      = [<span class="s">"media monitoring"</span>, <span class="s">"crisis reporting"</span>,
+              <span class="s">"data analytics"</span>]</code></pre>
+          <p class="prose">
+            Assistant Manager and Technical Project Manager with 4+ years of experience in media monitoring,
+            crisis reporting, and data analytics. I track what is being said across digital, social and
+            traditional media, turn it into clear executive reporting, and build the tools that make that work faster.
           </p>
-          <p class="reveal body">
-            I track what is being said across digital, social and traditional media, turn it into
-            clear executive reporting, and build the tools and automations that make that work faster.
-          </p>
-          <div class="stats reveal">
-            <div><strong>4+</strong><span>Years of experience</span></div>
-            <div><strong>2</strong><span>Languages · Arabic &amp; English</span></div>
-            <div><strong>7+</strong><span>Platforms monitored</span></div>
-          </div>
         </div>
       </div>
     </section>
 
-    <!-- EXPERTISE -->
-    <section id="skills" class="section">
-      <h2 class="reveal">Expertise</h2>
-      <div class="skills">
-        <article class="skill reveal">
-          <span class="num">01</span>
-          <h3>Media Monitoring</h3>
-          <p>Digital &amp; social media (X/Twitter, Instagram, Facebook, TikTok, YouTube, online news) and traditional media (TV, radio, print); coverage tracking, share of voice.</p>
-        </article>
-        <article class="skill reveal">
-          <span class="num">02</span>
-          <h3>Crisis &amp; Reputation Management</h3>
-          <p>PR risk assessment, public sentiment monitoring, stakeholder communication, real-time briefings, executive reporting.</p>
-        </article>
-        <article class="skill reveal">
-          <span class="num">03</span>
-          <h3>Leadership &amp; Delivery</h3>
-          <p>Remote team management, workload allocation, escalation workflows, staff training, project planning, reporting quality improvement.</p>
-        </article>
-        <article class="skill reveal">
-          <span class="num">04</span>
-          <h3>Analytics</h3>
-          <p>Sentiment analysis, social media measurement, audience &amp; engagement analysis, KPI reporting, data visualization, dashboards.</p>
-        </article>
-        <article class="skill reveal wide">
-          <span class="num">05</span>
-          <h3>Technical</h3>
-          <div class="chips">
+    <!-- ============ EXPERTISE (SQL) ============ -->
+    <section id="expertise" class="sec">
+      <h2 class="code-head" aria-label="Expertise">
+        <span class="k">SELECT</span> area, scope <span class="k">FROM</span> <span class="n">expertise</span>;
+      </h2>
+      <div class="result" role="table" aria-label="Expertise">
+        <div class="r-row r-headrow" role="row"><span role="columnheader">area</span><span role="columnheader">scope</span></div>
+        <div class="r-row" role="row">
+          <span class="r-area" role="cell">Media monitoring</span>
+          <span role="cell">Digital &amp; social media (X/Twitter, Instagram, Facebook, TikTok, YouTube, online news) and traditional media (TV, radio, print); coverage tracking, share of voice.</span>
+        </div>
+        <div class="r-row" role="row">
+          <span class="r-area" role="cell">Crisis &amp; reputation management</span>
+          <span role="cell">PR risk assessment, public sentiment monitoring, stakeholder communication, real-time briefings, executive reporting.</span>
+        </div>
+        <div class="r-row" role="row">
+          <span class="r-area" role="cell">Leadership &amp; delivery</span>
+          <span role="cell">Remote team management, workload allocation, escalation workflows, staff training, project planning, reporting quality improvement.</span>
+        </div>
+        <div class="r-row" role="row">
+          <span class="r-area" role="cell">Analytics</span>
+          <span role="cell">Sentiment analysis, social media measurement, audience &amp; engagement analysis, KPI reporting, data visualization, dashboards.</span>
+        </div>
+        <div class="r-row" role="row">
+          <span class="r-area" role="cell">Technical</span>
+          <span role="cell" class="stack">
             <span>Python</span><span>R (ggplot2)</span><span>SQL</span><span>Excel</span><span>PowerPoint</span>
             <span>AI agents</span><span>Model Context Protocol (MCP)</span><span>API integration</span>
-          </div>
-        </article>
+          </span>
+        </div>
+        <p class="r-foot">5 rows returned</p>
       </div>
     </section>
 
-    <!-- PROJECTS -->
-    <section id="work" class="section">
-      <h2 class="reveal">Selected projects</h2>
+    <!-- ============ PROJECTS (R) ============ -->
+    <section id="work" class="sec">
+      <h2 class="code-head" aria-label="Projects">
+        <span class="n">ggplot</span>(<span class="a">projects</span>) + <span class="n">geom_case</span>()
+      </h2>
 
-      <!-- ===== PROJECT 01: MCP AGENT ===== -->
-      <article class="case reveal" id="mcp">
-        <div class="case-head">
-          <span class="case-num">01</span>
-          <div>
-            <h3>MCP-Integrated AI Agent for Social Media Data Retrieval</h3>
-            <div class="tags"><span>Python</span><span>MCP</span><span>REST APIs</span><span>AI agents</span></div>
-          </div>
-        </div>
-        <div class="case-body">
-          <div class="case-text">
-            <p>Built and deployed an AI agent connected through the Model Context Protocol (MCP) that retrieves social media data across multiple platforms via third-party APIs, live end to end.</p>
-            <p>Automated data collection for media monitoring, reducing manual effort and speeding up analysis and report delivery.</p>
-            <ol class="flow-steps">
-              <li><b>Ask</b><span>A plain-language request goes to the AI agent.</span></li>
-              <li><b>Route</b><span>The agent calls tools exposed by a Python MCP server.</span></li>
-              <li><b>Retrieve</b><span>The server queries social platforms through third-party APIs.</span></li>
-              <li><b>Deliver</b><span>Clean, structured data comes back, ready for analysis and reports.</span></li>
-            </ol>
-          </div>
-          <!-- Animated architecture diagram -->
-          <div class="diagram" aria-label="Architecture diagram of the MCP agent">
-            <svg viewBox="0 0 520 470" role="img">
-              <defs>
-                <linearGradient id="g1" x1="0" x2="1"><stop offset="0" stop-color="#00c8b4"/><stop offset="1" stop-color="#6b5bff"/></linearGradient>
-              </defs>
-              <!-- links -->
-              <path id="p1" class="link" d="M260 70 V140"/>
-              <path id="p2" class="link" d="M260 200 V250"/>
-              <path id="p3" class="link" d="M260 310 V340 H70 V370"/>
-              <path id="p4" class="link" d="M260 310 V370"/>
-              <path id="p5" class="link" d="M260 310 V340 H450 V370"/>
-              <!-- pulses travelling along the links -->
-              <circle r="5" class="pulse"><animateMotion dur="2.4s" repeatCount="indefinite"><mpath href="#p1"/></animateMotion></circle>
-              <circle r="5" class="pulse"><animateMotion dur="2.4s" begin=".6s" repeatCount="indefinite"><mpath href="#p2"/></animateMotion></circle>
-              <circle r="5" class="pulse amber"><animateMotion dur="2.4s" begin="1.2s" repeatCount="indefinite"><mpath href="#p3"/></animateMotion></circle>
-              <circle r="5" class="pulse amber"><animateMotion dur="2.4s" begin="1.2s" repeatCount="indefinite"><mpath href="#p4"/></animateMotion></circle>
-              <circle r="5" class="pulse amber"><animateMotion dur="2.4s" begin="1.2s" repeatCount="indefinite"><mpath href="#p5"/></animateMotion></circle>
-              <!-- nodes -->
-              <g class="node"><rect x="160" y="20" width="200" height="50" rx="12"/><text x="260" y="51">Analyst request</text></g>
-              <g class="node hl"><rect x="140" y="140" width="240" height="60" rx="14"/><text x="260" y="167">AI agent</text><text x="260" y="186" class="sub">LLM client</text></g>
-              <g class="node hl"><rect x="140" y="250" width="240" height="60" rx="14"/><text x="260" y="277">MCP server</text><text x="260" y="296" class="sub">Python · tool definitions</text></g>
-              <g class="node api"><rect x="10" y="370" width="120" height="50" rx="12"/><text x="70" y="400">X / Twitter</text></g>
-              <g class="node api"><rect x="200" y="370" width="120" height="50" rx="12"/><text x="260" y="400">REST APIs</text></g>
-              <g class="node api"><rect x="390" y="370" width="120" height="50" rx="12"/><text x="450" y="400">More platforms</text></g>
-              <text x="260" y="455" class="cap">Structured data → CSV → analysis &amp; reports</text>
-            </svg>
-          </div>
+      <!-- MCP AGENT -->
+      <article class="case" id="mcp">
+        <header class="case-head">
+          <h3>MCP-Integrated AI Agent for Social Media Data Retrieval</h3>
+          <p class="tags">Python, MCP, REST APIs</p>
+        </header>
+        <p class="case-intro">Built and deployed an AI agent connected through the Model Context Protocol (MCP) that retrieves social media data across multiple platforms via third-party APIs, live end to end. It automates data collection for media monitoring, reducing manual effort and speeding up analysis and report delivery.</p>
+
+        <div class="diagram" aria-label="Architecture diagram of the MCP agent">
+          <svg class="wide-d" viewBox="0 0 960 300" role="img">
+            <title>Request flows from the analyst to the AI agent, the MCP server, and out to social platform APIs; structured data flows back.</title>
+            <defs>
+              <linearGradient id="g1" x1="0" x2="1"><stop offset="0" stop-color="#6FE3C1"/><stop offset="1" stop-color="#5B8CC4"/></linearGradient>
+            </defs>
+            <path id="p1" class="link" d="M170 150 H250"/>
+            <path id="p2" class="link" d="M450 150 H530"/>
+            <path id="p3" class="link" d="M730 150 H760 V60 H790"/>
+            <path id="p4" class="link" d="M730 150 H790"/>
+            <path id="p5" class="link" d="M730 150 H760 V240 H790"/>
+            <path id="pr" class="link back" d="M630 185 V262 H350 V185"/>
+            <circle r="6" class="pulse"><animateMotion dur="2.6s" repeatCount="indefinite"><mpath href="#p1"/></animateMotion></circle>
+            <circle r="6" class="pulse"><animateMotion dur="2.6s" begin=".7s" repeatCount="indefinite"><mpath href="#p2"/></animateMotion></circle>
+            <circle r="6" class="pulse out"><animateMotion dur="2.6s" begin="1.4s" repeatCount="indefinite"><mpath href="#p3"/></animateMotion></circle>
+            <circle r="6" class="pulse out"><animateMotion dur="2.6s" begin="1.4s" repeatCount="indefinite"><mpath href="#p4"/></animateMotion></circle>
+            <circle r="6" class="pulse out"><animateMotion dur="2.6s" begin="1.4s" repeatCount="indefinite"><mpath href="#p5"/></animateMotion></circle>
+            <circle r="5" class="pulse back"><animateMotion dur="3.2s" begin="2s" repeatCount="indefinite"><mpath href="#pr"/></animateMotion></circle>
+
+            <g class="node"><rect x="10" y="115" width="160" height="70" rx="10"/><text x="90" y="146">Analyst</text><text x="90" y="168" class="sub">plain-language request</text></g>
+            <g class="node hl"><rect x="250" y="115" width="200" height="70" rx="10"/><text x="350" y="146">AI agent</text><text x="350" y="168" class="sub">LLM client</text></g>
+            <g class="node hl"><rect x="530" y="115" width="200" height="70" rx="10"/><text x="630" y="146">MCP server</text><text x="630" y="168" class="sub">Python, tool definitions</text></g>
+            <g class="node api"><rect x="790" y="35" width="160" height="50" rx="10"/><text x="870" y="66">X / Twitter</text></g>
+            <g class="node api"><rect x="790" y="125" width="160" height="50" rx="10"/><text x="870" y="156">REST APIs</text></g>
+            <g class="node api"><rect x="790" y="215" width="160" height="50" rx="10"/><text x="870" y="246">More platforms</text></g>
+            <text x="490" y="290" class="cap">structured data returns as CSV, ready for analysis and reports</text>
+          </svg>
+          <svg class="tall" viewBox="0 0 400 560" role="img">
+            <title>Request flows from the analyst to the AI agent, the MCP server, and out to social platform APIs.</title>
+            <defs><linearGradient id="g2" x1="0" x2="1"><stop offset="0" stop-color="#6FE3C1"/><stop offset="1" stop-color="#5B8CC4"/></linearGradient></defs>
+            <path id="q1" class="link" d="M200 80 V140"/>
+            <path id="q2" class="link" d="M200 210 V270"/>
+            <path id="q3" class="link" d="M200 340 V380 H70 V420"/>
+            <path id="q4" class="link" d="M200 340 V420"/>
+            <path id="q5" class="link" d="M200 340 V380 H330 V420"/>
+            <circle r="6" class="pulse"><animateMotion dur="2.6s" repeatCount="indefinite"><mpath href="#q1"/></animateMotion></circle>
+            <circle r="6" class="pulse"><animateMotion dur="2.6s" begin=".7s" repeatCount="indefinite"><mpath href="#q2"/></animateMotion></circle>
+            <circle r="6" class="pulse out"><animateMotion dur="2.6s" begin="1.4s" repeatCount="indefinite"><mpath href="#q3"/></animateMotion></circle>
+            <circle r="6" class="pulse out"><animateMotion dur="2.6s" begin="1.4s" repeatCount="indefinite"><mpath href="#q4"/></animateMotion></circle>
+            <circle r="6" class="pulse out"><animateMotion dur="2.6s" begin="1.4s" repeatCount="indefinite"><mpath href="#q5"/></animateMotion></circle>
+            <g class="node"><rect x="90" y="10" width="220" height="70" rx="10"/><text x="200" y="41">Analyst</text><text x="200" y="63" class="sub">plain-language request</text></g>
+            <g class="node hl"><rect x="90" y="140" width="220" height="70" rx="10" style="stroke:url(#g2)"/><text x="200" y="171">AI agent</text><text x="200" y="193" class="sub">LLM client</text></g>
+            <g class="node hl"><rect x="90" y="270" width="220" height="70" rx="10" style="stroke:url(#g2)"/><text x="200" y="301">MCP server</text><text x="200" y="323" class="sub">Python, tool definitions</text></g>
+            <g class="node api"><rect x="5" y="420" width="130" height="50" rx="10"/><text x="70" y="451">X / Twitter</text></g>
+            <g class="node api"><rect x="150" y="420" width="100" height="50" rx="10"/><text x="200" y="451">APIs</text></g>
+            <g class="node api"><rect x="265" y="420" width="130" height="50" rx="10"/><text x="330" y="451">More</text></g>
+            <text x="200" y="510" class="cap">structured data returns as CSV,</text>
+            <text x="200" y="532" class="cap">ready for analysis and reports</text>
+          </svg>
         </div>
       </article>
 
-      <!-- ===== PROJECT 02: MENTAL HEALTH STUDY ===== -->
-      <article class="case reveal" id="study">
-        <div class="case-head">
-          <span class="case-num">02</span>
-          <div>
-            <h3>Mental Health &amp; Social Media: Data Visualization Study</h3>
-            <div class="tags"><span>Python</span><span>R</span><span>ggplot2</span><span>Tableau</span><span>PowerPoint</span></div>
-          </div>
-        </div>
+      <!-- MENTAL HEALTH STUDY -->
+      <article class="case" id="study">
+        <header class="case-head">
+          <h3>Mental Health &amp; Social Media: Data Visualization Study</h3>
+          <p class="tags">Python, R, ggplot2, Tableau, PowerPoint</p>
+        </header>
         <p class="case-intro">Analyzed links between screen time, platform usage, stress, sleep, and happiness across age and gender groups, and built a dashboard and a consistent set of comparative charts in Python, R, and PowerPoint.</p>
 
-        <div class="tabs" role="tablist">
-          <button class="tab active" data-tab="report" role="tab">Report</button>
-          <button class="tab" data-tab="tableau" role="tab">Tableau dashboard</button>
-          <button class="tab" data-tab="r" role="tab">R · ggplot2</button>
-          <button class="tab" data-tab="py" role="tab">Python</button>
+        <div class="tabs" role="tablist" aria-label="Study outputs">
+          <button class="tab active" data-tab="report" role="tab" aria-selected="true">Report</button>
+          <button class="tab" data-tab="tableau" role="tab" aria-selected="false">Tableau dashboard</button>
+          <button class="tab" data-tab="r" role="tab" aria-selected="false">R charts</button>
+          <button class="tab" data-tab="py" role="tab" aria-selected="false">Python charts</button>
         </div>
 
-        <!-- REPORT: full slide viewer -->
-        <div class="panel active" data-panel="report">
-          <div class="deck" id="deck" tabindex="0">
+        <div class="panel active" data-panel="report" role="tabpanel">
+          <div class="deck" id="deck" tabindex="0" aria-label="Report slides, use arrow keys to navigate">
             <div class="deck-stage">
               <button class="deck-nav prev" aria-label="Previous slide">‹</button>
               <div class="deck-track">
@@ -184,25 +199,23 @@
             <div class="deck-bar">
               <div class="deck-thumbs"></div>
               <span class="deck-count">1 / 5</span>
-              <button class="deck-btn" id="deckFull">Fullscreen</button>
-              <a class="deck-btn" href="assets/mental-health-social-media-report.pdf" download>Download PDF</a>
+              <button class="pill" id="deckFull">Fullscreen</button>
+              <a class="pill" href="assets/mental-health-social-media-report.pdf" download>Download PDF</a>
             </div>
           </div>
         </div>
 
-        <!-- TABLEAU -->
-        <div class="panel" data-panel="tableau">
+        <div class="panel" data-panel="tableau" role="tabpanel">
           <div class="tableau" id="tableau">
             <img src="assets/tableau-dashboard.jpg" alt="Tableau dashboard preview" loading="lazy">
             <div class="tableau-cta">
-              <button class="btn solid" id="loadViz">Load interactive dashboard</button>
-              <a class="btn" target="_blank" rel="noopener" href="https://public.tableau.com/views/CaseStudy_17630080940830/AhmedElabgari?:language=en-US&amp;:display_count=n&amp;:origin=viz_share_link">Open on Tableau Public ↗</a>
+              <button class="pill solid" id="loadViz">Load interactive dashboard</button>
+              <a class="pill" target="_blank" rel="noopener" href="https://public.tableau.com/views/CaseStudy_17630080940830/AhmedElabgari?:language=en-US&amp;:display_count=n&amp;:origin=viz_share_link">Open on Tableau Public</a>
             </div>
           </div>
         </div>
 
-        <!-- R GALLERY -->
-        <div class="panel" data-panel="r">
+        <div class="panel" data-panel="r" role="tabpanel">
           <div class="gallery">
             <figure class="wide"><img src="assets/r-age-gender-facets.jpg" alt="Comparison by age group and gender" loading="lazy"><figcaption>Comparison by age group and gender</figcaption></figure>
             <figure><img src="assets/r-age-groups.jpg" alt="Averages per age group" loading="lazy"><figcaption>Averages per age group</figcaption></figure>
@@ -211,43 +224,42 @@
           </div>
         </div>
 
-        <!-- PYTHON GALLERY -->
-        <div class="panel" data-panel="py">
+        <div class="panel" data-panel="py" role="tabpanel">
           <div class="gallery py">
             <figure><img src="assets/py-stress-screen-time.jpg" alt="Stress by daily screen time" loading="lazy"><figcaption>Stress by daily screen time</figcaption></figure>
             <figure><img src="assets/py-platform-usage.jpg" alt="Social media platform usage" loading="lazy"><figcaption>Platform usage</figcaption></figure>
             <figure><img src="assets/py-stress-platform-gender.jpg" alt="Stress by platform and gender" loading="lazy"><figcaption>Stress by platform and gender</figcaption></figure>
             <figure><img src="assets/py-metrics-age.jpg" alt="Metrics by age group" loading="lazy"><figcaption>Metrics by age group</figcaption></figure>
-            <figure class="wide"><img src="assets/py-heatmap.jpg" alt="Age group heatmap of key metrics" loading="lazy"><figcaption>Heatmap of key metrics by age group</figcaption></figure>
+            <figure class="wide"><img src="assets/py-heatmap.jpg" alt="Heatmap of key metrics by age group" loading="lazy"><figcaption>Heatmap of key metrics by age group</figcaption></figure>
           </div>
         </div>
       </article>
     </section>
 
-    <!-- Lightbox for charts -->
-    <div class="lightbox" id="lightbox" hidden>
-      <button class="lb-close" aria-label="Close">×</button>
-      <button class="lb-nav lb-prev" aria-label="Previous">‹</button>
-      <figure><img alt=""><figcaption></figcaption></figure>
-      <button class="lb-nav lb-next" aria-label="Next">›</button>
-    </div>
-
-    <!-- CONTACT -->
-    <section id="contact" class="section contact">
-      <h2 class="reveal">Let's work together</h2>
-      <p class="reveal lead">
-        Open to media monitoring, reporting and analytics opportunities.
-      </p>
-      <a class="btn reveal" href="mailto:ahmadalabqari@hotmail.com">ahmadalabqari@hotmail.com</a>
+    <!-- ============ CONTACT (terminal) ============ -->
+    <section id="contact" class="sec contact">
+      <h2 class="contact-title">Let's work together</h2>
+      <p class="prose">Open to media monitoring, reporting and analytics opportunities.</p>
+      <a class="terminal" href="mailto:ahmadalabqari@hotmail.com">
+        <span class="t-bar"><i></i><i></i><i></i></span>
+        <span class="t-line"><span class="t-prompt">$</span> mail --to <span class="t-mail">ahmadalabqari@hotmail.com</span><span class="caret" aria-hidden="true"></span></span>
+        <span class="t-hint">Press to send an email</span>
+      </a>
     </section>
   </main>
 
-  <footer>© 2026 Ahmed Elabgari</footer>
+  <footer class="foot">
+    <span>© 2026 Ahmed Elabgari</span>
+    <span lang="ar" dir="rtl">أحمد العبقري</span>
+  </footer>
 
-  <!-- Libraries (free, loaded from a CDN — nothing to install) -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.4/p5.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
-  <script src="script.js?v=3"></script>
+  <div class="lightbox" id="lightbox" hidden>
+    <button class="lb-close" aria-label="Close">×</button>
+    <button class="lb-nav lb-prev" aria-label="Previous">‹</button>
+    <figure><img alt=""><figcaption></figcaption></figure>
+    <button class="lb-nav lb-next" aria-label="Next">›</button>
+  </div>
+
+  <script src="script.js?v=4"></script>
 </body>
 </html>
