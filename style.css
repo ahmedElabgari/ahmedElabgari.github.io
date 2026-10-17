@@ -81,6 +81,30 @@ a { color: inherit; }
 .stack span { font: 500 .85rem var(--mono); color: var(--text); border: 1px solid var(--line); border-radius: 4px; padding: 3px 10px; }
 .r-foot { padding: 10px 26px; border-top: 1px solid var(--line); font: 400 .8rem var(--mono); color: var(--muted); }
 
+
+/* ---------- certificate ---------- */
+.cert { display: grid; grid-template-columns: 1.25fr 1fr; gap: clamp(32px, 5vw, 64px); align-items: center; perspective: 1400px; }
+.cert-card { position: relative; display: block; border-radius: 6px; overflow: hidden; background: #fff;
+  box-shadow: 0 30px 70px rgba(3,10,20,.55), 0 0 0 1px var(--line);
+  transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); transform-style: preserve-3d; transition: transform .25s ease-out; cursor: zoom-in; }
+.cert-card img { display: block; width: 100%; height: auto; }
+.cert-glare { position: absolute; inset: 0; pointer-events: none; mix-blend-mode: screen; opacity: 0; transition: opacity .3s;
+  background: radial-gradient(circle at var(--gx, 50%) var(--gy, 50%), rgba(111,227,193,.35), transparent 45%); }
+.cert-card:hover .cert-glare { opacity: 1; }
+.cert-info h3 { font: 800 clamp(1.5rem, 2.8vw, 2.1rem)/1.15 var(--display); letter-spacing: -.02em; }
+.cert-meta { color: var(--muted); margin-top: 8px; }
+.track { list-style: none; counter-reset: c; margin: 26px 0 30px; position: relative; }
+.track::before { content: ""; position: absolute; left: 11px; top: 14px; bottom: 30px; width: 2px; background: linear-gradient(var(--mint), var(--steel)); opacity: .55; }
+.track li { counter-increment: c; position: relative; padding: 5px 0 5px 40px; font-size: .97rem; }
+.track li::before { content: "✓"; position: absolute; left: 0; top: 6px; width: 24px; height: 24px; border-radius: 50%;
+  display: grid; place-items: center; font-size: .75rem; font-weight: 600; color: var(--ink); background: var(--mint); box-shadow: 0 0 0 4px var(--ink); }
+.track li::after { content: counter(c, decimal-leading-zero); position: absolute; right: 0; top: 6px; font: 400 .78rem var(--mono); color: var(--muted); }
+.track li { padding-right: 34px; }
+.cert-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+@media (max-width: 900px) { .cert { grid-template-columns: 1fr; } }
+@media (max-width: 700px) { .links a[href="#certificate"] { display: none; } }
+@media (prefers-reduced-motion: reduce) { .cert-card { transform: none !important; } }
+
 /* ---------- projects ---------- */
 .case { padding: clamp(28px, 4vw, 48px) 0; border-top: 1px solid var(--line); }
 .case + .case { margin-top: 24px; }
